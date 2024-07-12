@@ -34,6 +34,9 @@
 `define OP_CACOP 8'd32
 `define OP_LU12I 8'd33
 `define OP_PCADDU12I 8'd34
+`define OP_LD 8'd35
+`define OP_ST 8'd36
+`define OP_LDU 8'd37
 
 `define OP_INVAILD 8'hff
 

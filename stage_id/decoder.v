@@ -1,5 +1,8 @@
 // 暂时未考虑 BREAK 和 SYSCALL
 `include "defs.v"
+`include "./stage_id/decoder_3r.v"
+`include "./stage_id/decoder_2ri12.v"
+
 module decoder (
 //output
             reg_d,
@@ -34,6 +37,9 @@ output reg [14:0] bns_code;
 output reg [4:0] shift_imm;
 output reg [19:0] u12imm;
 
+wire [7:0] op_3r;
+wire [7:0] op_2ri12;
+
 always@(*) begin
     reg_d <= inst[4:0];
     reg_j <= inst[9:5];
@@ -57,6 +63,16 @@ always @(*) begin
     || inst[31:26] == 6'b011010
     || inst[31:26] == 6'b011011);
 end
+
+decoder_3r U_decoder_3r(
+            .inst(inst),
+            .op(op_3r)
+);
+
+decoder_2ri12 U_decoder_2ri12(
+            .inst(inst),
+            .op(op_2ri12)
+);
 
 // always @(*) begin
 //     imm_sz <= inst[31:25] == 7'b0000001 ? `IMM_SZ_12 :

@@ -147,6 +147,8 @@ reg_id_ex id_ex(
             .id_rj_from_gr(id_rj_from_gr),
             .id_rk_from_gr(id_rk_from_gr),
             .id_reg_d(id_reg_d),
+            .id_reg_j(id_reg_j),
+            .id_reg_k(id_reg_k),
             .id_op(id_op),
             .id_op_type(id_op_type),
             .id_imm(id_imm),
@@ -157,5 +159,7 @@ reg_id_ex id_ex(
             .id_flag_unsigned(id_flag_unsigned),
             .id_access_sz(id_access_sz),
             .id_is_branch(id_is_branch));
+
+
 
 endmodule
