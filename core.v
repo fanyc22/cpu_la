@@ -9,6 +9,7 @@
 `include "./reg_between_stage/reg_mm2_wb.v"
 `include "gr.v"
 `include "./stage_id/decoder.v"
+`include "./stage_ex/alu.v"
 
 module core (
 //output
@@ -59,6 +60,9 @@ wire id_flag_unsigned;
 wire [2:0] id_access_sz;
 wire id_is_branch;
 wire [13:0] id_csr;
+
+wire [31:0] ex_alu_out;
+wire ex_alu_zero;
 
 pc U_pc(
          .pc_reg(if1_pc),
@@ -163,6 +167,11 @@ reg_id_ex id_ex(
             .id_is_branch(id_is_branch)
             .id_csr(id_csr));
 
-
+alu U_alu(
+            .alu_in1(id_ex.rj_from_gr),
+            .alu_in2(id_ex.rk_from_gr),
+            .alu_op(id_ex.op),
+            .alu_out(ex_alu_out),
+            .zero(ex_alu_zero));
 
 endmodule

@@ -58,7 +58,7 @@
 `define OP_CSRRD 8'd29
 `define OP_CSRWR 8'd30
 `define OP_CSRXCHG 8'd31
-//ui21
+//u12i
 `define OP_LU12I 8'd33
 `define OP_PCADDU12I 8'd34
 
