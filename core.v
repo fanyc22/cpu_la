@@ -1,0 +1,99 @@
+`include "./stage_if1/pc.v"
+`include "./stage_if2/bp.v"
+`include "./icache.v"
+`include "./reg_if1_if2.v"
+`include "./reg_if2_id.v"
+`include "./reg_id_ex.v"
+`include "./reg_ex_mm1.v"
+`include "./reg_mm1_mm2.v"
+`include "./reg_mm2_wb.v"
+
+module core (
+//output
+            
+//input
+            clk,
+            rst_n);
+
+parameter WITH_CACHE = 0;
+parameter WITH_TLB = 0;
+
+input wire clk;
+input wire rst_n;
+
+wire [31:0] if1_pc;
+
+wire if2_branch_taken;
+wire [31:0] if2_branch_address;
+wire [31:0] if2_inst;
+wire if2_icache_hit;
+
+wire if1_if2_flush;
+wire if2_id_flush;
+wire id_ex_flush;
+wire ex_mm1_flush;
+wire mm1_mm2_flush;
+wire mm2_wb_flush;
+
+wire if1_if2_wen;
+wire if2_id_wen;
+wire id_ex_wen;
+wire ex_mm1_wen;
+wire mm1_mm2_wen;
+
+
+pc U_pc(
+         .pc_reg(if1_pc),
+         .rst_n(rst_n),
+         .clk(clk),
+         .enable(en_pc),
+        //  .is_exception(flush),
+        //  .exception_new_pc(exp_entry_addr),
+         .is_branch(if2_branch_taken),
+         .branch_address(if2_branch_address));
+
+icache U_icache(
+            .rdata(if2_inst),
+            .hit(if2_icache_hit),
+            .clk(clk),
+            .rst_n(rst_n),
+            .re(1'b1),
+            .raddr(if1_pc),
+            .we(1'b0),
+            .waddr(32'b0),
+            .wdata(32'b0),
+            .wsz(3'b0));
+
+reg_if1_if2 if1_if2(
+            .clk(clk),
+            .rst_n(rst_n),
+            .wen(if1_if2_wen),
+            .flush(if1_if2_flush),
+            .if1_pc(if1_pc));
+
+bp U_bp(
+            .branch(if2_branch_taken),
+            .target(if2_branch_address),
+            .clk(clk),
+            .rst_n(rst_n),
+            .pc_low(if1_if2.pc[5:0])
+            // .we(),
+            // .hitted(),
+            // .wtarget(),
+            // .hit_addr()
+            // TODO: add the rest of the signals
+            );
+
+reg_if2_id if2_id(
+            .clk(clk),
+            .rst_n(rst_n),
+            .wen(if2_id_wen),
+            .flush(if2_id_flush),
+            .if2_pc(if1_if2.pc),
+            .if2_inst(if2_inst),
+            .if2_hit(if2_icache_hit));
+
+
+
+
+endmodule
