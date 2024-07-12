@@ -1,12 +1,12 @@
 `include "./stage_if1/pc.v"
 `include "./stage_if2/bp.v"
 `include "./icache.v"
-`include "./reg_if1_if2.v"
-`include "./reg_if2_id.v"
-`include "./reg_id_ex.v"
-`include "./reg_ex_mm1.v"
-`include "./reg_mm1_mm2.v"
-`include "./reg_mm2_wb.v"
+`include "./reg_between_stage/reg_if1_if2.v"
+`include "./reg_between_stage/reg_if2_id.v"
+`include "./reg_between_stage/reg_id_ex.v"
+`include "./reg_between_stage/reg_ex_mm1.v"
+`include "./reg_between_stage/reg_mm1_mm2.v"
+`include "./reg_between_stage/reg_mm2_wb.v"
 
 module core (
 //output
