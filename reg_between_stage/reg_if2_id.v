@@ -8,7 +8,7 @@ module reg_if2_id (
             flush,
             if2_pc,
             if2_inst,
-            if2_hit);
+            if2_icache_hit);
     
 input wire clk;
 input wire rst_n;
@@ -16,7 +16,7 @@ input wire wen;
 input wire flush;
 input wire [31:0] if2_pc;
 input wire [31:0] if2_inst;
-input wire if2_hit;
+input wire if2_icache_hit;
 
 reg [31:0] pc;
 reg [31:0] inst;
@@ -31,7 +31,7 @@ always @(posedge clk ) begin
     else if(wen) begin
         pc <= if2_pc;
         inst <= if2_inst;
-        hit <= if2_hit;
+        hit <= if2_icache_hit;
     end
 end
 

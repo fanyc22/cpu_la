@@ -54,3 +54,11 @@
 `define HIGH_PREDICT_BIT 33
 `define LOW_PREDICT_BIT 32
 `define TARGET_BIT 31:0
+
+`define IMM_SZ_8 3'd0
+`define IMM_SZ_12 3'd1
+`define IMM_SZ_14 3'd2
+`define IMM_SZ_16 3'd3
+`define IMM_SZ_21 3'd4
+`define IMM_SZ_26 3'd5
+`define IMM_SZ_0 3'd7
