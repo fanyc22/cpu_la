@@ -58,6 +58,7 @@ wire [19:0] id_u12imm;
 wire id_flag_unsigned;
 wire [2:0] id_access_sz;
 wire id_is_branch;
+wire [13:0] id_csr;
 
 pc U_pc(
          .pc_reg(if1_pc),
@@ -136,7 +137,8 @@ decoder U_decoder(
             .flag_unsigned(id_flag_unsigned),
             .access_sz(id_access_sz),
             .is_branch(id_is_branch),
-            .inst(if2_inst));
+            .inst(if2_inst),
+            .csr(id_csr));
 
 reg_id_ex id_ex(
             .clk(clk),
@@ -158,7 +160,8 @@ reg_id_ex id_ex(
             .id_u12imm(id_u12imm),
             .id_flag_unsigned(id_flag_unsigned),
             .id_access_sz(id_access_sz),
-            .id_is_branch(id_is_branch));
+            .id_is_branch(id_is_branch)
+            .id_csr(id_csr));
 
 
 

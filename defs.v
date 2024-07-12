@@ -1,4 +1,13 @@
+`define OP_TYPE_3R 3'd0
+`define OP_TYPE_2RI12 3'd1
+`define OP_TYPE_BJ 3'd2
+`define OP_TYPE_ATOMIC 3'd3
+`define OP_TYPE_CSR 3'd4
+`define OP_TYPE_U12I 3'd5
 
+`define OP_TYPE_INVALID 3'd7
+
+//3r
 `define OP_ADD 8'd0
 `define OP_SUB 8'd1
 `define OP_SLT 8'd2
@@ -22,29 +31,45 @@
 `define OP_SLLI 8'd20
 `define OP_SRLI 8'd21
 `define OP_SRAI 8'd22
+//2ri12
 `define OP_SLTI 8'd23
 `define OP_SLTUI 8'd24
 `define OP_ADDI 8'd25
 `define OP_ANDI 8'd26
 `define OP_ORI 8'd27
 `define OP_XORI 8'd28
-`define OP_CSRRD 8'd29
-`define OP_CSRWR 8'd30
-`define OP_CSRXCHG 8'd31
 `define OP_CACOP 8'd32
-`define OP_LU12I 8'd33
-`define OP_PCADDU12I 8'd34
 `define OP_LD 8'd35
 `define OP_ST 8'd36
 `define OP_LDU 8'd37
+//bj
+`define OP_JIRL 8'd38
+`define OP_B 8'd39
+`define OP_BL 8'd40
+`define OP_BEQ 8'd41
+`define OP_BLT 8'd42
+`define OP_BGE 8'd43
+`define OP_BLTU 8'd44
+`define OP_BGEU 8'd45
+//atomic
+`define OP_LL 8'd46
+`define OP_SC 8'd47
+//csr
+`define OP_CSRRD 8'd29
+`define OP_CSRWR 8'd30
+`define OP_CSRXCHG 8'd31
+//ui21
+`define OP_LU12I 8'd33
+`define OP_PCADDU12I 8'd34
 
 `define OP_INVAILD 8'hff
 
-`define ACCESS_SZ_WORD 3'd0
+`define ACCESS_SZ_BYTE 3'd0
 `define ACCESS_SZ_HALF 3'd1
-`define ACCESS_SZ_BYTE 3'd2
+`define ACCESS_SZ_WORD 3'd2
 `define ACCESS_SZ_LEFT 3'd3
 `define ACCESS_SZ_RIGHT 3'd4
+`define ACCESS_SZ_INVALID 3'd7
 
 `define BTB_NN 2'd0
 `define BTB_NB 2'd1

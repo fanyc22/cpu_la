@@ -21,7 +21,8 @@ module reg_id_ex (
             id_u12imm,
             id_flag_unsigned,
             id_access_sz,
-            id_is_branch);
+            id_is_branch,
+            id_csr);
     
 input wire clk;
 input wire rst_n;
@@ -43,6 +44,7 @@ input wire [19:0] id_u12imm;
 input wire id_flag_unsigned;
 input wire [2:0] id_access_sz;
 input wire id_is_branch;
+input wire [13:0] id_csr;
 
 reg [31:0] pc;
 reg [31:0] rj_from_gr;
@@ -60,6 +62,7 @@ reg [19:0] u12imm;
 reg flag_unsigned;
 reg [2:0] access_sz;
 reg is_branch;
+reg [13:0] csr;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
@@ -79,6 +82,7 @@ always @(posedge clk ) begin
         flag_unsigned <= 1'b0;
         access_sz <= 3'b0;
         is_branch <= 1'b0;
+        csr <= 14'b0;
     end
     else if(wen) begin
         pc <= id_pc;
@@ -97,6 +101,7 @@ always @(posedge clk ) begin
         flag_unsigned <= id_flag_unsigned;
         access_sz <= id_access_sz;
         is_branch <= id_is_branch;
+        csr <= id_csr;
     end
 end
 
