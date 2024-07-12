@@ -36,3 +36,21 @@
 `define OP_PCADDU12I 8'd34
 
 `define OP_INVAILD 8'hff
+
+`define ACCESS_SZ_WORD 3'd0
+`define ACCESS_SZ_HALF 3'd1
+`define ACCESS_SZ_BYTE 3'd2
+`define ACCESS_SZ_LEFT 3'd3
+`define ACCESS_SZ_RIGHT 3'd4
+
+`define BTB_NN 2'd0
+`define BTB_NB 2'd1
+`define BTB_BN 2'd2
+`define BTB_BB 2'd3
+ 
+`define BTB_WIDTH 35 //validbit:1,predictbit:2,target:32
+`define VALID_BIT 34
+`define PREDICT_BIT 33:32
+`define HIGH_PREDICT_BIT 33
+`define LOW_PREDICT_BIT 32
+`define TARGET_BIT 31:0
