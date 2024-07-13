@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module decoder_u12i (
 //output
             op,
@@ -12,7 +12,7 @@ always @(*) begin
     case (inst[31:25])
         7'b0001010: op = `OP_LU12I;
         7'b0001110: op = `OP_PCADDU12I;
-        default: op = `OP_INVAILD;
+        default: op = `OP_INVALID;
     endcase
 end
 

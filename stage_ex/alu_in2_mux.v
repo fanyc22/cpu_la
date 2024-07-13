@@ -1,3 +1,5 @@
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+
 module alu_in2_mux (
 //output
     alu_in2,
@@ -10,6 +12,8 @@ module alu_in2_mux (
     shift_imm,
     flag_unsigned);
 
+input wire [7:0] op;
+input wire [2:0] op_type;
 input wire [31:0] rk_from_gr;
 input wire [25:0] imm_unext;
 input wire [2:0] imm_sz;
@@ -39,5 +43,6 @@ always @(*) begin
     else  begin
         alu_in2 = imm_ext;
     end
-    
+end
+
 endmodule

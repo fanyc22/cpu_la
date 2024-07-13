@@ -1,3 +1,5 @@
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+
 module alu (
 //output
             alu_out,
@@ -14,7 +16,7 @@ input wire[31:0] alu_in2;
 input wire[7:0] alu_op;
 
 output reg[31:0] alu_out;
-output reg zero;
+output reg alu_zero;
 // output reg overflow;
 
 wire signed alu_in1_s ;

@@ -1,11 +1,11 @@
 // 暂时未考虑 BREAK 和 SYSCALL
-`include "defs.v"
-`include "./stage_id/decoder_3r.v"
-`include "./stage_id/decoder_2ri12.v"
-`include "./stage_id/decoder_bj.v"
-`include "./stage_id/decoder_atomic.v"
-`include "./stage_id/decoder_csr.v"
-`include "./stage_id/decoder_u12i.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_3r.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_2ri12.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_bj.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_atomic.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_csr.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_u12i.v"
 
 module decoder (
 //output
@@ -32,7 +32,7 @@ output reg [4:0] reg_d;
 output reg [4:0] reg_j;
 output reg [4:0] reg_k;
 output reg [7:0] op;
-output reg [7:0] op_type;
+output reg [2:0] op_type;
 output reg [25:0] imm;
 output reg [2:0] imm_sz;
 output reg flag_unsigned;
@@ -99,32 +99,32 @@ decoder_csr U_decoder_csr(
             .op(op_csr)
 );
 
-decoder_ui12 U_decoder_u12i(
+decoder_u12i U_decoder_u12i(
             .inst(inst),
             .op(op_u12i)
 );
 
 always @(*) begin
-    if(op_2ri12 != `OP_INVAILD) begin
+    if(op_2ri12 != `OP_INVALID) begin
         op_type = `OP_TYPE_2RI12;
     end
-    else if(op_3r != `OP_INVAILD) begin
+    else if(op_3r != `OP_INVALID) begin
         op_type = `OP_TYPE_3R;
     end
-    else if(op_bj != `OP_INVAILD) begin
+    else if(op_bj != `OP_INVALID) begin
         op_type = `OP_TYPE_BJ;
     end
-    else if(op_atomic != `OP_INVAILD) begin
+    else if(op_atomic != `OP_INVALID) begin
         op_type = `OP_TYPE_ATOMIC;
     end
-    else if(op_csr != `OP_INVAILD) begin
+    else if(op_csr != `OP_INVALID) begin
         op_type = `OP_TYPE_CSR;
     end
-    else if(op_lu12i != `OP_INVAILD) begin
+    else if(op_u12i != `OP_INVALID) begin
         op_type = `OP_TYPE_U12I;
     end
     else begin
-        op_type = `OP_TYPE_INVAILD;
+        op_type = `OP_TYPE_INVALID;
     end
 end
 
@@ -135,8 +135,8 @@ always @(*) begin
         `OP_TYPE_BJ: op = op_bj;
         `OP_TYPE_ATOMIC: op = op_atomic;
         `OP_TYPE_CSR: op = op_csr;
-        `OP_TYPE_UI12: op = op_u12i;
-        default: op = `OP_INVAILD;
+        `OP_TYPE_U12I: op = op_u12i;
+        default: op = `OP_INVALID;
     endcase
 end
 
@@ -160,7 +160,7 @@ always @(*) begin
               inst[31:26] == 6'b001010 ? `IMM_SZ_12 :
               inst[31:26] == 6'b001000 ? `IMM_SZ_14 :
               inst[31:27] == 5'b01010 ? `IMM_SZ_16:
-              inst[31:30] == 2'b01 ? `IMM_SZ_20 : IMM_SZ_0;
+              inst[31:30] == 2'b01 ? `IMM_SZ_26 : `IMM_SZ_0;
 end
 
 

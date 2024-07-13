@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 
 module dcache (
 //output

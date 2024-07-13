@@ -1,3 +1,4 @@
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module pc_branch (
 //output
             pc_branch,
@@ -8,12 +9,11 @@ module pc_branch (
             offset);
 
 input wire [7:0] op;
-input wire [2:0] op_type;
 input wire [31:0] rj;
 input wire [31:0] pc;
-input wire [31:0] offset;
+input wire [25:0] offset;
 
-output reg pc_branch;
+output reg [31:0] pc_branch;
 
 always @(*) begin
     case (op)

@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module decoder_3r (
 //output
             op,
@@ -10,7 +10,7 @@ output reg [7:0] op;
 
 always @(*) begin
     if(inst[31:23] != 8'b00000000) begin
-        op = `OP_INVAILD;
+        op = `OP_INVALID;
     end
     else begin
         case (inst[22:15])
@@ -37,7 +37,7 @@ always @(*) begin
             8'b10000001: op = `OP_SLLI;
             8'b10001001: op = `OP_SRLI;
             8'b10010001: op = `OP_SRAI;
-            default: op = `OP_INVAILD;
+            default: op = `OP_INVALID;
         endcase
     end
 end

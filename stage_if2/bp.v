@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 
 module bp (
 //output
@@ -23,7 +23,6 @@ input wire[5:0] hit_addr;
 
 output reg branch;
 output reg[31:0] target;
-output reg hit;
 
 reg [`BTB_WIDTH-1:0] btb[0:63];
 

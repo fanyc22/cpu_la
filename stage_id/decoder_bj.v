@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module decoder_bj (
 //output
             op,
@@ -18,7 +18,7 @@ always @(*) begin
         6'b011001: op = `OP_BGE;
         6'b011010: op = `OP_BLTU;
         6'b011011: op = `OP_BGEU;
-        default: op = `OP_INVAILD;
+        default: op = `OP_INVALID;
     endcase
 end
 

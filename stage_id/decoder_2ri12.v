@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module decoder_2ri12 (
 //output
             op,
@@ -20,7 +20,7 @@ always @(*) begin
         10'b00101000??: op = `OP_LD;
         10'b00101001??: op = `OP_ST;
         10'b00101010??: op = `OP_LDU;
-        default: op = `OP_INVAILD;
+        default: op = `OP_INVALID;
     endcase
 end
 

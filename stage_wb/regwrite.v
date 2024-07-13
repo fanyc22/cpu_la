@@ -1,3 +1,4 @@
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module regwrite (
 //output
         gr_we,

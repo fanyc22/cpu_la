@@ -62,7 +62,7 @@
 `define OP_LU12I 8'd33
 `define OP_PCADDU12I 8'd34
 
-`define OP_INVAILD 8'hff
+`define OP_INVALID 8'hff
 
 `define ACCESS_SZ_BYTE 3'd0
 `define ACCESS_SZ_HALF 3'd1

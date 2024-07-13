@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module decoder_csr (
 //output
             op,
@@ -10,7 +10,7 @@ output reg [7:0] op;
 
 always @(*) begin
     if(inst[31:24] != 8'b00000100) begin
-        op = `OP_INVAILD;
+        op = `OP_INVALID;
     end
     else begin
         case (inst[9:5])

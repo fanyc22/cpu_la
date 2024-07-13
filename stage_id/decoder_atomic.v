@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module decoder_atomic (
 //output
             op,
@@ -12,7 +12,7 @@ always @(*) begin
     case (inst[31:24])
         8'b00100000: op = `OP_LL;
         8'b00100001: op = `OP_SC;
-        default: op = `OP_INVAILD;
+        default: op = `OP_INVALID;
     endcase
 end
 

@@ -1,21 +1,21 @@
-`include "./icache.v"
-`include "./dcache.v"
-`include "./reg_between_stage/reg_if1_if2.v"
-`include "./reg_between_stage/reg_if2_id.v"
-`include "./reg_between_stage/reg_id_ex.v"
-`include "./reg_between_stage/reg_ex_mm1.v"
-`include "./reg_between_stage/reg_mm1_mm2.v"
-`include "./reg_between_stage/reg_mm2_wb.v"
-`include "gr.v"
-`include "./stage_if1/pc.v"
-`include "./stage_if2/bp.v"
-`include "./stage_id/decoder.v"
-`include "./stage_ex/alu.v"
-`include "./stage_ex/ex_ctrl.v"
-`include "./stage_wb/regwrite.v"
-`include "./stage_ex/alu_in2_mux.v"
-`include "./stage_ex/branch.v"
-`include "./stage_ex/pc_branch.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/icache.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/dcache.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_if1_if2.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_if2_id.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_id_ex.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_ex_mm1.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_mm1_mm2.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_mm2_wb.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/gr.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_if1/pc.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_if2/bp.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/alu.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/ex_ctrl.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_wb/regwrite.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/alu_in2_mux.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/branch.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/pc_branch.v"
 
 module core (
 //output
@@ -42,6 +42,7 @@ wire if2_id_wen;
 wire id_ex_wen;
 wire ex_mm1_wen;
 wire mm1_mm2_wen;
+wire mm2_wb_wen;
 
 wire [31:0] if1_pc;
 
@@ -57,7 +58,7 @@ wire [4:0] id_reg_d;
 wire [4:0] id_reg_j;
 wire [4:0] id_reg_k;
 wire [7:0] id_op;
-wire [7:0] id_op_type;
+wire [2:0] id_op_type;
 wire [25:0] id_imm;
 wire [2:0] id_imm_sz;
 wire [14:0] id_bns_code;
@@ -92,7 +93,7 @@ pc U_pc(
          .pc_reg(if1_pc),
          .rst_n(rst_n),
          .clk(clk),
-         .enable(en_pc),
+         .enable(1'b1),
         //  .is_exception(flush),
         //  .exception_new_pc(exp_entry_addr),
          .is_branch(if2_branch_taken),
@@ -190,7 +191,7 @@ reg_id_ex id_ex(
             .id_u12imm(id_u12imm),
             .id_flag_unsigned(id_flag_unsigned),
             .id_access_sz(id_access_sz),
-            .id_is_branch(id_is_branch)
+            .id_is_branch(id_is_branch),
             .id_csr(id_csr));
 
 alu_in2_mux U_alu_in2_mux(
@@ -208,7 +209,7 @@ alu U_alu(
             .alu_in2(ex_alu_in2),
             .alu_op(id_ex.op),
             .alu_out(ex_alu_out),
-            .zero(ex_alu_zero));
+            .alu_zero(ex_alu_zero));
 
 branch U_branch(
             .branch(ex_branch),
@@ -232,9 +233,9 @@ ex_ctrl U_ex_ctrl(
             .ex_rd_from_gr(id_ex.rd_from_gr),
             .mm_access_sz(ex_mm_access_sz),
             .mm_addr(ex_mm_addr),
-            .ex_exe_out(ex_exe_out),
+            .exe_out(ex_exe_out),
             .mm_re(ex_mm_re),
-            .mm_we(ex_mm_we)
+            .mm_we(ex_mm_we),
             .mm_wdata(ex_mm_wdata));
 
 reg_ex_mm1 ex_mm1(

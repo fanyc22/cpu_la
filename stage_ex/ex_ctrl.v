@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 
 module ex_ctrl (
 //output
@@ -21,7 +21,7 @@ module ex_ctrl (
         ex_rd_from_gr);
 
 input wire [7:0] op;
-input wire [7:0] op_type;
+input wire [2:0] op_type;
 input wire [31:0] alu_out;
 input wire [2:0] ex_access_sz;
 input wire [31:0] ex_rd_from_gr;
@@ -29,7 +29,7 @@ input wire [31:0] ex_rd_from_gr;
 // output reg [2:0] mm_access_op;
 output reg [2:0] mm_access_sz;
 output reg [31:0] mm_addr;
-output reg [31:0] ex_out;
+output reg [31:0] exe_out;
 output reg mm_re;
 output reg mm_we;
 output reg [31:0] mm_wdata;
