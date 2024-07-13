@@ -25,8 +25,6 @@ always @(*) begin
         `IMM_SZ_8: imm_ext = {{24{imm_unext[7]}}, imm_unext[7:0]};
         `IMM_SZ_12: imm_ext = flag_unsigned ? {20'd0, imm_unext[11:0]} : {{20{imm_unext[11]}}, imm_unext[11:0]};
         `IMM_SZ_14: imm_ext = {{18{imm_unext[13]}}, imm_unext[13:0]};
-        `IMM_SZ_16: imm_ext = {{16{imm_unext[15]}}, imm_unext[15:0]};
-        `IMM_SZ_26: imm_ext = {{6{imm_unext[25]}}, imm_unext[25:0]};
         default: imm_ext = 32'd0;
     endcase
 end

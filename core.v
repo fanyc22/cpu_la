@@ -14,6 +14,8 @@
 `include "./stage_ex/ex_ctrl.v"
 `include "./stage_wb/regwrite.v"
 `include "./stage_ex/alu_in2_mux.v"
+`include "./stage_ex/branch.v"
+`include "./stage_ex/pc_branch.v"
 
 module core (
 //output
@@ -76,6 +78,8 @@ wire [31:0] ex_exe_out;
 wire ex_mm_re;
 wire ex_mm_we;
 wire [31:0] ex_mm_wdata;
+wire ex_branch;
+wire [31:0] ex_pc_branch;
 
 wire [31:0] mm2_rdata;
 wire mm2_hit;
@@ -205,6 +209,20 @@ alu U_alu(
             .alu_op(id_ex.op),
             .alu_out(ex_alu_out),
             .zero(ex_alu_zero));
+
+branch U_branch(
+            .branch(ex_branch),
+            .op(id_ex.op),
+            .op_type(id_ex.op_type),
+            .rj(id_ex.rj_from_gr),
+            .rd(id_ex.rd_from_gr));
+
+pc_branch U_pc_branch(
+            .pc_branch(ex_pc_branch),
+            .op(id_ex.op),
+            .rj(id_ex.rj_from_gr),
+            .pc(if2_id.pc),
+            .offset(id_ex.imm));
 
 ex_ctrl U_ex_ctrl(
             .op(id_ex.op),

@@ -30,10 +30,10 @@ wire [31:0] srl_out;
 wire [31:0] sra_out;
 wire lt_out;
 wire ltu_out;
-wire eq_out;
-wire le_out;
-wire ge_out;
-wire geu_out;
+// wire eq_out;
+// wire le_out;
+// wire ge_out;
+// wire geu_out;
 
 assign alu_in1_s = alu_in1;
 assign alu_in2_s = alu_in2;
@@ -48,10 +48,10 @@ assign srl_out = alu_in1 >> alu_in2[4:0];
 assign sra_out = alu_in1 >>> alu_in2[4:0];
 assign lt_out = alu_in1_s < alu_in2_s;
 assign ltu_out = alu_in1 < alu_in2;
-assign eq_out = alu_in1 == alu_in2;
-assign le_out = alu_in1_s <= alu_in2_s;
-assign ge_out = alu_in1_s >= alu_in2_s;
-assign geu_out = alu_in1 >= alu_in2;
+// assign eq_out = alu_in1 == alu_in2;
+// assign le_out = alu_in1_s <= alu_in2_s;
+// assign ge_out = alu_in1_s >= alu_in2_s;
+// assign geu_out = alu_in1 >= alu_in2;
 
 
 always @(*) begin
@@ -82,12 +82,13 @@ always @(*) begin
         //u12i
         `OP_PCADDU12I: alu_out = add_out;
         //bj
-        `OP_JIRL: alu_out = add_out;
-        `OP_BEQ: alu_out = eq_out;
-        `OP_BLT: alu_out = lt_out;
-        `OP_BGE: alu_out = ge_out;
-        `OP_BLTU: alu_out = ltu_out;
-        `OP_BGEU: alu_out = geu_out;
+        // `OP_JIRL: alu_out = add_out;
+        // `OP_BEQ: alu_out = eq_out;
+        // `OP_BLT: alu_out = lt_out;
+        // `OP_BGE: alu_out = ge_out;
+        // `OP_BLTU: alu_out = ltu_out;
+        // `OP_BGEU: alu_out = geu_out;
+        default: alu_out = add_out;
     endcase
 end
 
