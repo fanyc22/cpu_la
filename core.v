@@ -12,6 +12,7 @@
 `include "./stage_id/decoder.v"
 `include "./stage_ex/alu.v"
 `include "./stage_ex/ex_ctrl.v"
+`include "./stage_wb/regwrite.v"
 
 module core (
 //output
@@ -74,9 +75,12 @@ wire ex_mm_re;
 wire ex_mm_we;
 wire [31:0] ex_mm_wdata;
 
-
 wire [31:0] mm2_rdata;
 wire mm2_hit;
+
+wire wb_gr_we;
+wire [4:0] wb_gr_waddr;
+wire [31:0] wb_gr_wdata;
 
 pc U_pc(
          .pc_reg(if1_pc),
@@ -135,10 +139,9 @@ gr U_gr(
             .rdata3(id_rd_from_gr),
             .clk(clk),
             .rst_n(rst_n),
-            // .we(),
-            // .waddr(),
-            // .wdata(),
-            // TODO: add the rest of the signals
+            .we(wb_gr_we),
+            .waddr(wb_gr_waddr),
+            .wdata(wb_gr_wdata),
             .raddr1(id_reg_j),
             .raddr2(id_reg_k),
             .raddr3(id_reg_d));
@@ -230,5 +233,37 @@ dcache U_dcache(
             .wsz(ex_mm1.mm_access_sz),
             .rdata(mm2_rdata),
             .hit(mm2_hit));
+
+reg_mm1_mm2 mm1_mm2(
+            .clk(clk),
+            .rst_n(rst_n),
+            .wen(mm1_mm2_wen),
+            .flush(mm1_mm2_flush),
+            .mm1_exe_out(ex_mm1.exe_out),
+            .mm1_mm_access_sz(ex_mm1.mm_access_sz),
+            .mm1_reg_d(ex_mm1.reg_d),
+            .mm1_op(ex_mm1.op),
+            .mm1_op_type(ex_mm1.op_type));
+
+reg_mm2_wb mm2_wb(
+            .clk(clk),
+            .rst_n(rst_n),
+            .wen(mm2_wb_wen),
+            .flush(mm2_wb_flush),
+            .mm2_exe_out(mm1_mm2.exe_out),
+            .mm2_reg_d(mm1_mm2.reg_d),
+            .mm2_op(mm1_mm2.op),
+            .mm2_op_type(mm1_mm2.op_type),
+            .mm2_rdata(mm2_rdata));
+
+regwrite U_regwrite(
+            .exe_out(mm2_wb.exe_out),
+            .reg_d(mm2_wb.reg_d),
+            .op(mm2_wb.op),
+            .op_type(mm2_wb.op_type),
+            .rdata(mm2_rdata),
+            .gr_we(wb_gr_we),
+            .gr_waddr(wb_gr_waddr),
+            .gr_wdata(wb_gr_wdata));
 
 endmodule
