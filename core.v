@@ -1,6 +1,7 @@
 `include "./stage_if1/pc.v"
 `include "./stage_if2/bp.v"
 `include "./icache.v"
+`include "./dcache.v"
 `include "./reg_between_stage/reg_if1_if2.v"
 `include "./reg_between_stage/reg_if2_id.v"
 `include "./reg_between_stage/reg_id_ex.v"
@@ -10,6 +11,7 @@
 `include "gr.v"
 `include "./stage_id/decoder.v"
 `include "./stage_ex/alu.v"
+`include "./stage_ex/ex_ctrl.v"
 
 module core (
 //output
@@ -46,6 +48,7 @@ wire if2_icache_hit;
 
 wire [31:0] id_rj_from_gr;
 wire [31:0] id_rk_from_gr;
+wire [31:0] id_rd_from_gr;
 wire [4:0] id_reg_d;
 wire [4:0] id_reg_j;
 wire [4:0] id_reg_k;
@@ -63,6 +66,17 @@ wire [13:0] id_csr;
 
 wire [31:0] ex_alu_out;
 wire ex_alu_zero;
+// wire ex_mm_access_op;
+wire [2:0] ex_mm_access_sz;
+wire [31:0] ex_mm_addr;
+wire [31:0] ex_exe_out;
+wire ex_mm_re;
+wire ex_mm_we;
+wire [31:0] ex_mm_wdata;
+
+
+wire [31:0] mm2_rdata;
+wire mm2_hit;
 
 pc U_pc(
          .pc_reg(if1_pc),
@@ -118,6 +132,7 @@ reg_if2_id if2_id(
 gr U_gr(
             .rdata1(id_rj_from_gr),
             .rdata2(id_rk_from_gr),
+            .rdata3(id_rd_from_gr),
             .clk(clk),
             .rst_n(rst_n),
             // .we(),
@@ -125,7 +140,8 @@ gr U_gr(
             // .wdata(),
             // TODO: add the rest of the signals
             .raddr1(id_reg_j),
-            .raddr2(id_reg_k));
+            .raddr2(id_reg_k),
+            .raddr3(id_reg_d));
 
 decoder U_decoder(
             .reg_d(id_reg_d),
@@ -152,6 +168,7 @@ reg_id_ex id_ex(
             .id_pc(if2_id.pc),
             .id_rj_from_gr(id_rj_from_gr),
             .id_rk_from_gr(id_rk_from_gr),
+            .id_rd_from_gr(id_rd_from_gr),
             .id_reg_d(id_reg_d),
             .id_reg_j(id_reg_j),
             .id_reg_k(id_reg_k),
@@ -173,5 +190,45 @@ alu U_alu(
             .alu_op(id_ex.op),
             .alu_out(ex_alu_out),
             .zero(ex_alu_zero));
+
+ex_ctrl U_ex_ctrl(
+            .op(id_ex.op),
+            .op_type(id_ex.op_type),
+            .alu_out(ex_alu_out),
+            .ex_access_sz(id_ex.access_sz),
+            .ex_rd_from_gr(id_ex.rd_from_gr),
+            .mm_access_sz(ex_mm_access_sz),
+            .mm_addr(ex_mm_addr),
+            .ex_exe_out(ex_exe_out),
+            .mm_re(ex_mm_re),
+            .mm_we(ex_mm_we)
+            .mm_wdata(ex_mm_wdata));
+
+reg_ex_mm1 ex_mm1(
+            .clk(clk),
+            .rst_n(rst_n),
+            .wen(ex_mm1_wen),
+            .flush(ex_mm1_flush),
+            .ex_exe_out(ex_exe_out),
+            .ex_mm_access_sz(ex_mm_access_sz),
+            .ex_mm_addr(ex_mm_addr),
+            .ex_mm_re(ex_mm_re),
+            .ex_mm_we(ex_mm_we),
+            .ex_mm_wdata(ex_mm_wdata),
+            .ex_reg_d(id_ex.reg_d),
+            .ex_op(id_ex.op),
+            .ex_op_type(id_ex.op_type));
+
+dcache U_dcache(
+            .clk(clk),
+            .rst_n(rst_n),
+            .re(ex_mm1.mm_re),
+            .raddr(ex_mm1.mm_addr),
+            .we(ex_mm1.mm_we),
+            .waddr(ex_mm1.mm_addr),
+            .wdata(ex_mm1.mm_wdata),
+            .wsz(ex_mm1.mm_access_sz),
+            .rdata(mm2_rdata),
+            .hit(mm2_hit));
 
 endmodule

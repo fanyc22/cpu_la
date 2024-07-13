@@ -9,6 +9,7 @@ module reg_id_ex (
             id_pc,
             id_rj_from_gr,
             id_rk_from_gr,
+            id_rd_from_gr,
             id_reg_d,
             id_reg_j,
             id_reg_k,
@@ -31,6 +32,7 @@ input wire flush;
 input wire [31:0] id_pc;
 input wire [31:0] id_rj_from_gr;
 input wire [31:0] id_rk_from_gr;
+input wire [31:0] id_rd_from_gr;
 input wire [4:0] id_reg_d;
 input wire [4:0] id_reg_j;
 input wire [4:0] id_reg_k;
@@ -49,6 +51,7 @@ input wire [13:0] id_csr;
 reg [31:0] pc;
 reg [31:0] rj_from_gr;
 reg [31:0] rk_from_gr;
+reg [31:0] rd_from_gr;
 reg [4:0] reg_d;
 reg [7:0] reg_j;
 reg [7:0] reg_k;
@@ -69,6 +72,7 @@ always @(posedge clk ) begin
         pc <= 32'b0;
         rj_from_gr <= 32'b0;
         rk_from_gr <= 32'b0;
+        rd_from_gr <= 32'b0;
         reg_d <= 5'b0;
         reg_j <= 5'b0;
         reg_k <= 5'b0;
@@ -88,6 +92,7 @@ always @(posedge clk ) begin
         pc <= id_pc;
         rj_from_gr <= id_rj_from_gr;
         rk_from_gr <= id_rk_from_gr;
+        rd_from_gr <= id_rd_from_gr;
         reg_d <= id_reg_d;
         reg_j <= id_reg_j;
         reg_k <= id_reg_k;
