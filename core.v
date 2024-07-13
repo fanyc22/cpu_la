@@ -13,6 +13,7 @@
 `include "./stage_ex/alu.v"
 `include "./stage_ex/ex_ctrl.v"
 `include "./stage_wb/regwrite.v"
+`include "./stage_ex/alu_in2_mux.v"
 
 module core (
 //output
@@ -65,6 +66,7 @@ wire [2:0] id_access_sz;
 wire id_is_branch;
 wire [13:0] id_csr;
 
+wire [31:0] ex_alu_in2;
 wire [31:0] ex_alu_out;
 wire ex_alu_zero;
 // wire ex_mm_access_op;
@@ -187,9 +189,19 @@ reg_id_ex id_ex(
             .id_is_branch(id_is_branch)
             .id_csr(id_csr));
 
+alu_in2_mux U_alu_in2_mux(
+            .alu_in2(ex_alu_in2),
+            .op(id_ex.op),
+            .op_type(id_ex.op_type),
+            .rk_from_gr(id_ex.rk_from_gr),
+            .imm_unext(id_ex.imm),
+            .imm_sz(id_ex.imm_sz),
+            .shift_imm(id_ex.shift_imm),
+            .flag_unsigned(id_ex.flag_unsigned));
+
 alu U_alu(
             .alu_in1(id_ex.rj_from_gr),
-            .alu_in2(id_ex.rk_from_gr),
+            .alu_in2(ex_alu_in2),
             .alu_op(id_ex.op),
             .alu_out(ex_alu_out),
             .zero(ex_alu_zero));
