@@ -16,6 +16,7 @@
 `include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/alu_in2_mux.v"
 `include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/branch.v"
 `include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/pc_branch.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/hazard_ctrl.v"
 
 module core (
 //output
@@ -29,6 +30,10 @@ parameter WITH_TLB = 0;
 
 input wire clk;
 input wire rst_n;
+
+wire pc_wen;
+wire pc_is_wrong;
+wire [31:0] pc_correct;
 
 wire if1_if2_flush;
 wire if2_id_flush;
@@ -68,6 +73,9 @@ wire id_flag_unsigned;
 wire [2:0] id_access_sz;
 wire id_is_branch;
 wire [13:0] id_csr;
+wire id_reg_j_ren;
+wire id_reg_k_ren;
+wire id_reg_d_ren;
 
 wire [31:0] ex_alu_in2;
 wire [31:0] ex_alu_out;
@@ -81,21 +89,66 @@ wire ex_mm_we;
 wire [31:0] ex_mm_wdata;
 wire ex_branch;
 wire [31:0] ex_pc_branch;
+wire ex_reg_d_wen;
 
 wire [31:0] mm2_rdata;
 wire mm2_hit;
 
-wire wb_gr_we;
 wire [4:0] wb_gr_waddr;
 wire [31:0] wb_gr_wdata;
+
+wire [1:0] fwd_src_j;
+wire [1:0] fwd_src_k;
+wire [1:0] fwd_src_d;
+
+hazard_ctrl U_hazard_ctrl(
+        .if1_if2_flush(if1_if2_flush),
+        .if2_id_flush(if2_id_flush),
+        .id_ex_flush(id_ex_flush),
+        .ex_mm1_flush(ex_mm1_flush),
+        .mm1_mm2_flush(mm1_mm2_flush),
+        .mm2_wb_flush(mm2_wb_flush),
+        .if1_if2_wen(if1_if2_wen),
+        .if2_id_wen(if2_id_wen),
+        .id_ex_wen(id_ex_wen),
+        .ex_mm1_wen(ex_mm1_wen),
+        .mm1_mm2_wen(mm1_mm2_wen),
+        .mm2_wb_wen(mm2_wb_wen),
+        .pc_wen(pc_wen),
+        .fwd_src_j(fwd_src_j),
+        .fwd_src_k(fwd_src_k),
+        .fwd_src_d(fwd_src_d),
+        .pc_is_wrong(pc_is_wrong),
+        .pc_correct(pc_correct),
+        .ex_pc(id_ex.pc),
+        .ex_branch(ex_branch),
+        .ex_pc_branch(ex_pc_branch),
+        .ex_branch_bp(id_ex.branch_bp),
+        .id_pc(if2_id.pc),
+        .id_is_branch(id_is_branch),
+        .id_branch_bp(if2_id.branch_bp),
+        .ex_reg_j_ren(id_ex.reg_j_ren),
+        .ex_reg_j(id_ex.reg_j),
+        .ex_reg_k_ren(id_ex.reg_k_ren),
+        .ex_reg_k(id_ex.reg_k),
+        .ex_reg_d_ren(id_ex.reg_d_ren),
+        .ex_reg_d(id_ex.reg_d),
+        .mm1_reg_d_wen(ex_mm1.reg_d_wen),
+        .mm1_reg_d(ex_mm1.reg_d),
+        .mm1_mm_load(ex_mm1.mm_re),
+        .mm2_reg_d_wen(mm1_mm2.reg_d_wen),
+        .mm2_reg_d(mm1_mm2.reg_d),
+        .mm2_mm_load(mm1_mm2.mm_re),
+        .wb_reg_d_wen(mm2_wb.reg_d_wen),
+        .wb_reg_d(mm2_wb.reg_d));
 
 pc U_pc(
          .pc_reg(if1_pc),
          .rst_n(rst_n),
          .clk(clk),
-         .enable(1'b1),
-        //  .is_exception(flush),
-        //  .exception_new_pc(exp_entry_addr),
+         .pc_wen(pc_wen),
+         .pc_is_wrong(pc_is_wrong),
+         .pc_correct(pc_correct),
          .is_branch(if2_branch_taken),
          .branch_address(if2_branch_address));
 
@@ -123,12 +176,11 @@ bp U_bp(
             .target(if2_branch_address),
             .clk(clk),
             .rst_n(rst_n),
-            .pc_low(if1_if2.pc[5:0])
-            // .we(),
-            // .hitted(),
-            // .wtarget(),
-            // .hit_addr()
-            // TODO: add the rest of the signals
+            .pc_low(if1_if2.pc[5:0]),
+            .we(id_ex.is_branch),
+            .hitted(ex_branch),
+            .wtarget(ex_pc_branch),
+            .hit_addr(id_ex.pc[5:0])
             );
 
 reg_if2_id if2_id(
@@ -138,7 +190,8 @@ reg_if2_id if2_id(
             .flush(if2_id_flush),
             .if2_pc(if1_if2.pc),
             .if2_inst(if2_inst),
-            .if2_icache_hit(if2_icache_hit));
+            .if2_icache_hit(if2_icache_hit),
+            .if2_branch_bp(if2_branch_taken));
 
 gr U_gr(
             .rdata1(id_rj_from_gr),
@@ -146,7 +199,7 @@ gr U_gr(
             .rdata3(id_rd_from_gr),
             .clk(clk),
             .rst_n(rst_n),
-            .we(wb_gr_we),
+            .we(mm2_wb.reg_d_wen),
             .waddr(wb_gr_waddr),
             .wdata(wb_gr_wdata),
             .raddr1(id_reg_j),
@@ -168,7 +221,10 @@ decoder U_decoder(
             .access_sz(id_access_sz),
             .is_branch(id_is_branch),
             .inst(if2_inst),
-            .csr(id_csr));
+            .csr(id_csr),
+            .reg_j_ren(id_reg_j_ren),
+            .reg_k_ren(id_reg_k_ren),
+            .reg_d_ren(id_reg_d_ren));
 
 reg_id_ex id_ex(
             .clk(clk),
@@ -192,7 +248,11 @@ reg_id_ex id_ex(
             .id_flag_unsigned(id_flag_unsigned),
             .id_access_sz(id_access_sz),
             .id_is_branch(id_is_branch),
-            .id_csr(id_csr));
+            .id_csr(id_csr),
+            .id_branch_bp(if2_id.branch_bp),
+            .id_reg_j_ren(id_reg_j_ren),
+            .id_reg_k_ren(id_reg_k_ren),
+            .id_reg_d_ren(id_reg_d_ren));
 
 alu_in2_mux U_alu_in2_mux(
             .alu_in2(ex_alu_in2),
@@ -236,7 +296,8 @@ ex_ctrl U_ex_ctrl(
             .exe_out(ex_exe_out),
             .mm_re(ex_mm_re),
             .mm_we(ex_mm_we),
-            .mm_wdata(ex_mm_wdata));
+            .mm_wdata(ex_mm_wdata),
+            .reg_d_wen(ex_reg_d_wen));
 
 reg_ex_mm1 ex_mm1(
             .clk(clk),
@@ -251,7 +312,8 @@ reg_ex_mm1 ex_mm1(
             .ex_mm_wdata(ex_mm_wdata),
             .ex_reg_d(id_ex.reg_d),
             .ex_op(id_ex.op),
-            .ex_op_type(id_ex.op_type));
+            .ex_op_type(id_ex.op_type),
+            .ex_reg_d_wen(ex_reg_d_wen));
 
 dcache U_dcache(
             .clk(clk),
@@ -272,9 +334,11 @@ reg_mm1_mm2 mm1_mm2(
             .flush(mm1_mm2_flush),
             .mm1_exe_out(ex_mm1.exe_out),
             .mm1_mm_access_sz(ex_mm1.mm_access_sz),
+            .mm1_mm_re(ex_mm1.mm_re),
             .mm1_reg_d(ex_mm1.reg_d),
             .mm1_op(ex_mm1.op),
-            .mm1_op_type(ex_mm1.op_type));
+            .mm1_op_type(ex_mm1.op_type),
+            .mm1_reg_d_wen(ex_mm1.reg_d_wen));
 
 reg_mm2_wb mm2_wb(
             .clk(clk),
@@ -285,7 +349,8 @@ reg_mm2_wb mm2_wb(
             .mm2_reg_d(mm1_mm2.reg_d),
             .mm2_op(mm1_mm2.op),
             .mm2_op_type(mm1_mm2.op_type),
-            .mm2_rdata(mm2_rdata));
+            .mm2_rdata(mm2_rdata),
+            .mm2_reg_d_wen(mm1_mm2.reg_d_wen));
 
 regwrite U_regwrite(
             .exe_out(mm2_wb.exe_out),
@@ -293,7 +358,6 @@ regwrite U_regwrite(
             .op(mm2_wb.op),
             .op_type(mm2_wb.op_type),
             .rdata(mm2_rdata),
-            .gr_we(wb_gr_we),
             .gr_waddr(wb_gr_waddr),
             .gr_wdata(wb_gr_wdata));
 

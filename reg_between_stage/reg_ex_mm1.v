@@ -14,7 +14,8 @@ module reg_ex_mm1 (
             ex_mm_wdata,
             ex_reg_d,
             ex_op,
-            ex_op_type);
+            ex_op_type,
+            ex_reg_d_wen);
 
 input wire clk;
 input wire rst_n;
@@ -29,6 +30,7 @@ input wire [31:0] ex_mm_wdata;
 input wire [4:0] ex_reg_d;
 input wire [7:0] ex_op;
 input wire [2:0] ex_op_type;
+input wire ex_reg_d_wen;
 
 reg [31:0] exe_out;
 reg [2:0] mm_access_sz;
@@ -39,6 +41,7 @@ reg [31:0] mm_wdata;
 reg [4:0] reg_d;
 reg [7:0] op;
 reg [2:0] op_type;
+reg reg_d_wen;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
@@ -51,6 +54,7 @@ always @(posedge clk ) begin
         reg_d <= 5'b0;
         op <= 8'b0;
         op_type <= 3'b0;
+        reg_d_wen <= 1'b0;
     end
     else if(wen) begin
         exe_out <= ex_exe_out;
@@ -62,6 +66,7 @@ always @(posedge clk ) begin
         reg_d <= ex_reg_d;
         op <= ex_op;
         op_type <= ex_op_type;
+        reg_d_wen <= ex_reg_d_wen;
     end
 end
 

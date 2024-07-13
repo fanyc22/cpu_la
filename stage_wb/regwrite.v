@@ -1,7 +1,6 @@
 `include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
 module regwrite (
 //output
-        gr_we,
         gr_waddr,
         gr_wdata,
 //input
@@ -17,18 +16,8 @@ input wire[7:0] op;
 input wire[2:0] op_type;
 input wire[31:0] rdata;
 
-output reg gr_we;
 output reg[4:0] gr_waddr;
 output reg[31:0] gr_wdata;
-
-always @(*) begin
-    gr_we = (op_type == `OP_TYPE_3R && (op != `OP_BREAK && op != `OP_SYSCALL)) || 
-            (op_type == `OP_TYPE_2RI12 && (op != `OP_ST && op != `OP_CACOP)) ||
-            (op_type == `OP_TYPE_BJ && (op == `OP_JIRL)) ||
-            (op_type == `OP_TYPE_ATOMIC && (op == `OP_LL)) ||
-            (op_type == `OP_TYPE_CSR) ||
-            (op_type == `OP_TYPE_U12I);
-end
 
 always @(*) begin
     if(op == `OP_LL || op == `OP_LD || op == `OP_LDU) begin

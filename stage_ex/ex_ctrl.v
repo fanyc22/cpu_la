@@ -10,6 +10,7 @@ module ex_ctrl (
         mm_wdata,
         //reg_d,
         exe_out,
+        reg_d_wen,
 //input
         // clk,
         // rst_n,
@@ -33,6 +34,7 @@ output reg [31:0] exe_out;
 output reg mm_re;
 output reg mm_we;
 output reg [31:0] mm_wdata;
+output reg reg_d_wen;
 
 always @(*) begin
     mm_addr = alu_out;
@@ -56,6 +58,15 @@ end
 
 always @(*) begin
     mm_wdata = ex_rd_from_gr;
+end
+
+always @(*) begin
+    reg_d_wen = (op_type == `OP_TYPE_3R && (op != `OP_BREAK && op != `OP_SYSCALL)) || 
+            (op_type == `OP_TYPE_2RI12 && (op != `OP_ST && op != `OP_CACOP)) ||
+            (op_type == `OP_TYPE_BJ && (op == `OP_JIRL)) ||
+            (op_type == `OP_TYPE_ATOMIC && (op == `OP_LL)) ||
+            (op_type == `OP_TYPE_CSR) ||
+            (op_type == `OP_TYPE_U12I);
 end
     
 endmodule

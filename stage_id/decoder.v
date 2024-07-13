@@ -23,6 +23,9 @@ module decoder (
             access_sz,
             is_branch,
             csr,
+            reg_j_ren,
+            reg_k_ren,
+            reg_d_ren,
 //input
             inst);
 
@@ -42,6 +45,9 @@ output reg [14:0] bns_code;
 output reg [4:0] shift_imm;
 output reg [19:0] u12imm;
 output reg [13:0] csr;
+output reg reg_j_ren;
+output reg reg_k_ren;
+output reg reg_d_ren;
 
 wire [7:0] op_3r;
 wire [7:0] op_2ri12;
@@ -163,5 +169,25 @@ always @(*) begin
               inst[31:30] == 2'b01 ? `IMM_SZ_26 : `IMM_SZ_0;
 end
 
+always @(*) begin
+    reg_j_ren = op != `OP_BREAK && 
+                op != `OP_SYSCALL &&
+                op != `OP_CSRRD &&
+                op != `OP_CSRWR &&
+                op != `OP_B &&
+                op != `OP_BL &&
+                op_type != `OP_TYPE_U12I;
+end
+
+always @(*) begin
+    reg_k_ren = op_type == `OP_TYPE_3R &&
+                op != `OP_BREAK &&
+                op != `OP_SYSCALL;
+end
+
+always @(*) begin
+    reg_d_ren = (op_type == `OP_TYPE_CSR && op != `OP_CSRRD) ||
+                (op_type == `OP_TYPE_BJ && op != `OP_JIRL && op != `OP_B && op != `OP_BL);
+end
 
 endmodule
