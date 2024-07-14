@@ -19,13 +19,17 @@ module ex_ctrl (
         op_type,
         alu_out,
         ex_access_sz,
-        ex_rd_from_gr);
+        ex_rd_from_gr,
+        pc,
+        u12imm);
 
 input wire [7:0] op;
 input wire [2:0] op_type;
 input wire [31:0] alu_out;
 input wire [2:0] ex_access_sz;
 input wire [31:0] ex_rd_from_gr;
+input wire [31:0] pc;
+input wire [19:0] u12imm;
 
 // output reg [2:0] mm_access_op;
 output reg [2:0] mm_access_sz;
@@ -41,7 +45,15 @@ always @(*) begin
 end
 
 always @(*) begin
-    exe_out = alu_out;
+    if(op == `OP_LU12I) begin
+        exe_out = {u12imm,12'b0};
+    end
+    else if(op == `OP_PCADDU12I) begin
+        exe_out = pc + {u12imm,12'b0};
+    end
+    else begin
+        exe_out = alu_out;
+    end
 end
 
 always @(*) begin

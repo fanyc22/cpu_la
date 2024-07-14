@@ -17,6 +17,7 @@
 `include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/branch.v"
 `include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/pc_branch.v"
 `include "/Users/fanyuchen/Desktop/la/cpu/hazard_ctrl.v"
+`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/fwd.v"
 
 module core (
 //output
@@ -91,6 +92,9 @@ wire [31:0] ex_mm_wdata;
 wire ex_branch;
 wire [31:0] ex_pc_branch;
 wire ex_reg_d_wen;
+wire [31:0] ex_rj_from_fwd;
+wire [31:0] ex_rk_from_fwd;
+wire [31:0] ex_rd_from_fwd;
 
 wire [31:0] mm2_rdata;
 wire mm2_hit;
@@ -256,6 +260,30 @@ reg_id_ex id_ex(
             .id_reg_j_ren(id_reg_j_ren),
             .id_reg_k_ren(id_reg_k_ren),
             .id_reg_d_ren(id_reg_d_ren));
+
+fwd U_fwd_j(
+            .reg_out(ex_rj_from_fwd),
+            .reg_from_gr(id_ex.rj_from_gr),
+            .reg_from_ex_mm1(ex_mm1.exe_out),
+            .reg_from_mm1_mm2(mm1_mm2.exe_out),
+            .reg_from_mm2_wb(wb_gr_wdata),
+            .fwd_ctrl(fwd_src_j));
+
+fwd U_fwd_k(
+            .reg_out(ex_rk_from_fwd),
+            .reg_from_gr(id_ex.rk_from_gr),
+            .reg_from_ex_mm1(ex_mm1.exe_out),
+            .reg_from_mm1_mm2(mm1_mm2.exe_out),
+            .reg_from_mm2_wb(wb_gr_wdata),
+            .fwd_ctrl(fwd_src_k));
+
+fwd U_fwd_d(
+            .reg_out(ex_rd_from_fwd),
+            .reg_from_gr(id_ex.rd_from_gr),
+            .reg_from_ex_mm1(ex_mm1.exe_out),
+            .reg_from_mm1_mm2(mm1_mm2.exe_out),
+            .reg_from_mm2_wb(wb_gr_wdata),
+            .fwd_ctrl(fwd_src_d));
 
 alu_in2_mux U_alu_in2_mux(
             .alu_in2(ex_alu_in2),
