@@ -22,6 +22,17 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# 获取 defs.v 的绝对路径
+DEFS_PATH=$(find "$DEST_DIR" -type f -name "defs.v" | head -n 1)
+DEFS_ABS_PATH=$(readlink -f "$DEFS_PATH")
+
+if [ -z "$DEFS_ABS_PATH" ]; then
+    echo "defs.v not found in $DEST_DIR."
+    exit 1
+fi
+
+echo "defs.v absolute path: $DEFS_ABS_PATH"
+
 # 递归地删除目标目录内所有 .v 文件中以 include 开头的行
 echo "Removing lines starting with '\`include' in .v files within $DEST_DIR..."
 find "$DEST_DIR" -type f -name "*.v" -print0 | while IFS= read -r -d '' file; do
@@ -35,6 +46,20 @@ done
 
 if [ $? -ne 0 ]; then
     echo "Failed to remove lines."
+    exit 1
+fi
+
+# 在每个 .v 文件开头添加 `include "PATH_TO_DEFS.V"，但排除 defs.v 文件
+echo "Adding \`include \"$DEFS_ABS_PATH\" to the beginning of each .v file except defs.v..."
+find "$DEST_DIR" -type f -name "*.v" ! -name "defs.v" -print0 | while IFS= read -r -d '' file; do
+    temp_file=$(mktemp)
+    echo "\`include \"$DEFS_ABS_PATH\"" > "$temp_file"
+    cat "$file" >> "$temp_file"
+    mv "$temp_file" "$file"
+done
+
+if [ $? -ne 0 ]; then
+    echo "Failed to add include lines."
     exit 1
 fi
 
