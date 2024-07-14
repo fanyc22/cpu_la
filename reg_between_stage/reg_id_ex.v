@@ -105,28 +105,28 @@ always @(posedge clk ) begin
         reg_d_ren <= 1'b0;
     end
     else if(wen) begin
-        pc <= id_pc;
-        rj_from_gr <= id_rj_from_gr;
-        rk_from_gr <= id_rk_from_gr;
-        rd_from_gr <= id_rd_from_gr;
-        reg_d <= id_reg_d;
-        reg_j <= id_reg_j;
-        reg_k <= id_reg_k;
-        op <= id_op;
-        op_type <= id_op_type;
-        imm <= id_imm;
-        imm_sz <= id_imm_sz;
-        bns_code <= id_bns_code;
-        shift_imm <= id_shift_imm;
-        u12imm <= id_u12imm;
-        flag_unsigned <= id_flag_unsigned;
-        access_sz <= id_access_sz;
-        is_branch <= id_is_branch;
-        csr <= id_csr;
-        branch_bp <= id_branch_bp;
-        reg_j_ren <= id_reg_j_ren;
-        reg_k_ren <= id_reg_k_ren;
-        reg_d_ren <= id_reg_d_ren;
+        pc <= flush ? 0 : id_pc;
+        rj_from_gr <= flush ? 0 : id_rj_from_gr;
+        rk_from_gr <= flush ? 0 : id_rk_from_gr;
+        rd_from_gr <= flush ? 0 : id_rd_from_gr;
+        reg_d <= flush ? 5'b0 : id_reg_d;
+        reg_j <= flush ? 5'b0 : id_reg_j;
+        reg_k <= flush ? 5'b0 : id_reg_k;
+        op <= flush ? 8'b0 : id_op;
+        op_type <= flush ? 3'b0 : id_op_type;
+        imm <= flush ? 26'b0 : id_imm;
+        imm_sz <= flush ? 3'b0 : id_imm_sz;
+        bns_code <= flush ? 15'b0 : id_bns_code;
+        shift_imm <= flush ? 5'b0 : id_shift_imm;
+        u12imm <= flush ? 20'b0 : id_u12imm;
+        flag_unsigned <= flush ? 1'b0 : id_flag_unsigned;
+        access_sz <= flush ? 3'b0 : id_access_sz;
+        is_branch <= flush ? 1'b0 : id_is_branch;
+        csr <= flush ? 14'b0 : id_csr;
+        branch_bp <= flush ? 1'b0 : id_branch_bp;
+        reg_j_ren <= flush ? 1'b0 : id_reg_j_ren;
+        reg_k_ren <= flush ? 1'b0 : id_reg_k_ren;
+        reg_d_ren <= flush ? 1'b0 : id_reg_d_ren;
     end
 end
 

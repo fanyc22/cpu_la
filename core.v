@@ -50,6 +50,7 @@ wire mm1_mm2_wen;
 wire mm2_wb_wen;
 
 wire [31:0] if1_pc;
+wire if1_icache_re;
 
 wire if2_branch_taken;
 wire [31:0] if2_branch_address;
@@ -150,14 +151,15 @@ pc U_pc(
          .pc_is_wrong(pc_is_wrong),
          .pc_correct(pc_correct),
          .is_branch(if2_branch_taken),
-         .branch_address(if2_branch_address));
+         .branch_address(if2_branch_address),
+         .icache_re(if1_icache_re));
 
 icache U_icache(
             .rdata(if2_inst),
             .hit(if2_icache_hit),
             .clk(clk),
             .rst_n(rst_n),
-            .re(1'b1),
+            .re(if1_icache_re),
             .raddr(if1_pc),
             .we(1'b0),
             .waddr(32'b0),
@@ -191,7 +193,8 @@ reg_if2_id if2_id(
             .if2_pc(if1_if2.pc),
             .if2_inst(if2_inst),
             .if2_icache_hit(if2_icache_hit),
-            .if2_branch_bp(if2_branch_taken));
+            .if2_branch_bp(if2_branch_taken),
+            .if1_if2_cache_valid(if1_if2.cache_valid));
 
 gr U_gr(
             .rdata1(id_rj_from_gr),

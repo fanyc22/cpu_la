@@ -9,7 +9,8 @@ module reg_if2_id (
             if2_pc,
             if2_inst,
             if2_icache_hit,
-            if2_branch_bp);
+            if2_branch_bp,
+            if1_if2_cache_valid);
     
 input wire clk;
 input wire rst_n;
@@ -19,6 +20,7 @@ input wire [31:0] if2_pc;
 input wire [31:0] if2_inst;
 input wire if2_icache_hit;
 input wire if2_branch_bp;
+input wire if1_if2_cache_valid;
 
 reg [31:0] pc;
 reg [31:0] inst;
@@ -33,10 +35,12 @@ always @(posedge clk ) begin
         branch_bp <= 1'b0;
     end
     else if(wen) begin
-        pc <= if2_pc;
-        inst <= if2_inst;
-        hit <= if2_icache_hit;
-        branch_bp <= if2_branch_bp;
+        pc <= flush ? 0 : if2_pc;
+        inst <= flush ? 0 : 
+                if1_if2_cache_valid ? if2_inst : 32'b0;
+        hit <= flush ? 0 : 
+                if1_if2_cache_valid ? if2_icache_hit : 1'b0;
+        branch_bp <= flush ? 0 : if2_branch_bp;
     end
 end
 

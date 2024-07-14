@@ -1,6 +1,7 @@
 module pc(/*autoport*/
 //output
       pc_reg,
+      icache_re,
 //input
       rst_n,
       clk,
@@ -21,8 +22,10 @@ input wire is_branch;
 input wire pc_is_wrong;
 input wire [31:0] pc_correct;
 
-reg[31:0] pc_next;
 output reg[31:0] pc_reg;
+output reg icache_re;
+
+reg[31:0] pc_next;
 
 always @(*) begin
     if (!rst_n) begin
@@ -44,8 +47,10 @@ always @(*) begin
     end
 end
 
-always @(posedge clk) 
+always @(posedge clk) begin
     pc_reg <= pc_next;
+    icache_re <= pc_wen;
+end
 
 // always @(posedge clk) $display("PC=%x",pc_reg);
 

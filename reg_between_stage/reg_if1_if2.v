@@ -15,13 +15,16 @@ input wire flush;
 input wire [31:0] if1_pc;
 
 reg [31:0] pc;
+reg cache_valid;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
         pc <= 32'b0;
+        cache_valid <= 1'b0;
     end
     else if(wen) begin
-        pc <= if1_pc;
+        pc <= flush ? 0 : if1_pc;
+        cache_valid <= !flush;
     end
 end
 

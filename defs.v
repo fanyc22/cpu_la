@@ -1,14 +1,14 @@
-`define OP_TYPE_3R 3'd0
+`define OP_TYPE_3R 3'd7
 `define OP_TYPE_2RI12 3'd1
 `define OP_TYPE_BJ 3'd2
 `define OP_TYPE_ATOMIC 3'd3
 `define OP_TYPE_CSR 3'd4
 `define OP_TYPE_U12I 3'd5
 
-`define OP_TYPE_INVALID 3'd7
+`define OP_TYPE_INVALID 3'd0
 
 //3r
-`define OP_ADD 8'd0
+`define OP_ADD 8'd63
 `define OP_SUB 8'd1
 `define OP_SLT 8'd2
 `define OP_SLTU 8'd3
@@ -62,14 +62,14 @@
 `define OP_LU12I 8'd33
 `define OP_PCADDU12I 8'd34
 
-`define OP_INVALID 8'hff
+`define OP_INVALID 8'd0
 
-`define ACCESS_SZ_BYTE 3'd0
+`define ACCESS_SZ_BYTE 3'd7
 `define ACCESS_SZ_HALF 3'd1
 `define ACCESS_SZ_WORD 3'd2
 `define ACCESS_SZ_LEFT 3'd3
 `define ACCESS_SZ_RIGHT 3'd4
-`define ACCESS_SZ_INVALID 3'd7
+`define ACCESS_SZ_INVALID 3'd0
 
 `define BTB_NN 2'd0
 `define BTB_NB 2'd1
@@ -83,15 +83,15 @@
 `define LOW_PREDICT_BIT 32
 `define TARGET_BIT 31:0
 
-`define IMM_SZ_8 3'd0
+`define IMM_SZ_8 3'd7
 `define IMM_SZ_12 3'd1
 `define IMM_SZ_14 3'd2
 `define IMM_SZ_16 3'd3
 `define IMM_SZ_21 3'd4
 `define IMM_SZ_26 3'd5
-`define IMM_SZ_0 3'd7
+`define IMM_SZ_0 3'd0
 
-`define FWD_SRC_EX_MM1 2'd0
+`define FWD_SRC_EX_MM1 2'd3
 `define FWD_SRC_MM1_MM2 2'd1
 `define FWD_SRC_MM2_WB 2'd2
-`define FWD_SRC_NONE 2'd3
+`define FWD_SRC_NONE 2'd0
