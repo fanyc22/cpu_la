@@ -1,0 +1,73 @@
+module reg_ex_mm1 (
+//output
+
+//input
+            clk,
+            rst_n,
+            flush,
+            wen,
+            ex_exe_out,
+            ex_mm_access_sz,
+            ex_mm_addr,
+            ex_mm_re,
+            ex_mm_we,
+            ex_mm_wdata,
+            ex_reg_d,
+            ex_op,
+            ex_op_type,
+            ex_reg_d_wen);
+
+input wire clk;
+input wire rst_n;
+input wire flush;
+input wire wen;
+input wire [31:0] ex_exe_out;
+input wire [2:0] ex_mm_access_sz;
+input wire [31:0] ex_mm_addr;
+input wire ex_mm_re;
+input wire ex_mm_we;
+input wire [31:0] ex_mm_wdata;
+input wire [4:0] ex_reg_d;
+input wire [7:0] ex_op;
+input wire [2:0] ex_op_type;
+input wire ex_reg_d_wen;
+
+reg [31:0] exe_out;
+reg [2:0] mm_access_sz;
+reg [31:0] mm_addr;
+reg mm_re;
+reg mm_we;
+reg [31:0] mm_wdata;
+reg [4:0] reg_d;
+reg [7:0] op;
+reg [2:0] op_type;
+reg reg_d_wen;
+
+always @(posedge clk ) begin
+    if(!rst_n) begin
+        exe_out <= 32'b0;
+        mm_access_sz <= 3'b0;
+        mm_addr <= 32'b0;
+        mm_re <= 1'b0;
+        mm_we <= 1'b0;
+        mm_wdata <= 32'b0;
+        reg_d <= 5'b0;
+        op <= 8'b0;
+        op_type <= 3'b0;
+        reg_d_wen <= 1'b0;
+    end
+    else if(wen) begin
+        exe_out <= ex_exe_out;
+        mm_access_sz <= ex_mm_access_sz;
+        mm_addr <= ex_mm_addr;
+        mm_re <= flush ? 0 : ex_mm_re;
+        mm_we <= flush ? 0 : ex_mm_we;
+        mm_wdata <= ex_mm_wdata;
+        reg_d <= ex_reg_d;
+        op <= flush ? 0 : ex_op;
+        op_type <= flush ? 0 : ex_op_type;
+        reg_d_wen <= flush ? 0 : ex_reg_d_wen;
+    end
+end
+
+endmodule

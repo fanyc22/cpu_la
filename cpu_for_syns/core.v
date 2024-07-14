@@ -1,23 +1,3 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/icache.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/dcache.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_if1_if2.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_if2_id.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_id_ex.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_ex_mm1.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_mm1_mm2.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_mm2_wb.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/gr.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_if1/pc.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_if2/bp.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/alu.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/ex_ctrl.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_wb/regwrite.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/alu_in2_mux.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/branch.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/pc_branch.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/hazard_ctrl.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/fwd.v"
 
 module core (
 //output
