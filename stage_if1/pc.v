@@ -22,7 +22,7 @@ input wire is_branch;
 input wire pc_is_wrong;
 input wire [31:0] pc_correct;
 
-output reg[31:0] pc_reg;
+output reg [31:0] pc_reg;
 output reg icache_re;
 
 reg[31:0] pc_next;

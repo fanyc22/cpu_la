@@ -1,4 +1,4 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/defs.v"
 module pc_branch (
 //output
             pc_branch,

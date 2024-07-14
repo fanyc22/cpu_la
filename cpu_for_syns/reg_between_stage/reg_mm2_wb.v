@@ -11,7 +11,8 @@ module reg_mm2_wb (
             mm2_op,
             mm2_op_type,
             mm2_rdata,
-            mm2_reg_d_wen);
+            mm2_reg_d_wen,
+            mm2_pc);
 
 input wire clk;
 input wire rst_n;
@@ -23,6 +24,7 @@ input wire [7:0] mm2_op;
 input wire [2:0] mm2_op_type;
 input wire [31:0] mm2_rdata;
 input wire mm2_reg_d_wen;
+input wire [31:0] mm2_pc;
 
 reg [31:0] exe_out;
 reg [4:0] reg_d;
@@ -30,6 +32,7 @@ reg [7:0] op;
 reg [2:0] op_type;
 reg [31:0] rdata;
 reg reg_d_wen;
+reg [31:0] pc;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
@@ -39,6 +42,7 @@ always @(posedge clk ) begin
         op_type <= 3'b0;
         rdata <= 32'b0;
         reg_d_wen <= 1'b0;
+        pc <= 32'b0;
     end
     else if(wen) begin
         exe_out <= mm2_exe_out;
@@ -47,6 +51,7 @@ always @(posedge clk ) begin
         op_type <= mm2_op_type;
         rdata <= mm2_rdata;
         reg_d_wen <= mm2_reg_d_wen;
+        pc <= flush ? 32'b0 : mm2_pc;
     end
 end
     

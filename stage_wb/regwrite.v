@@ -1,4 +1,4 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/defs.v"
 module regwrite (
 //output
         gr_waddr,

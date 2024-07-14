@@ -1,37 +1,49 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/icache.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/dcache.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_if1_if2.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_if2_id.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_id_ex.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_ex_mm1.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_mm1_mm2.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/reg_between_stage/reg_mm2_wb.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/gr.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_if1/pc.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_if2/bp.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/alu.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/ex_ctrl.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_wb/regwrite.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/alu_in2_mux.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/branch.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/pc_branch.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/hazard_ctrl.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_ex/fwd.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/icache.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/dcache.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/reg_between_stage/reg_if1_if2.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/reg_between_stage/reg_if2_id.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/reg_between_stage/reg_id_ex.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/reg_between_stage/reg_ex_mm1.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/reg_between_stage/reg_mm1_mm2.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/reg_between_stage/reg_mm2_wb.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/gr.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_if1/pc.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_if2/bp.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_id/decoder.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_ex/alu.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_ex/ex_ctrl.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_wb/regwrite.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_ex/alu_in2_mux.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_ex/branch.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_ex/pc_branch.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/hazard_ctrl.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_ex/fwd.v"
 
 module core (
 //output
-            inst_sram_we,
-            inst_sram_addr,
-            inst_sram_wdata,
+            inst_cache_re,
+            inst_cache_raddr,
+            inst_cache_we,
+            inst_cache_waddr,
+            inst_cache_wdata,
+            inst_cache_access_sz,
+               
+            data_cache_re,
+            data_cache_raddr,
+            data_cache_we,
+            data_cache_waddr,
+            data_cache_wdata,
+            data_cache_access_sz,
 
-            data_sram_we,
-            data_sram_addr,
-            data_sram_wdata,
-            
+            debug_wb_pc,
+            debug_wb_rf_we,
+            debug_wb_rf_wnum,
+            debug_wb_rf_wdata,
 //input            
-            inst_sram_rdata,
-            data_sram_rdata,
+            inst_cache_rdata,
+            inst_cache_hit,
+            data_cache_rdata,
+            data_cache_hit,
             clk,
             rst_n);
 
@@ -40,17 +52,29 @@ parameter WITH_TLB = 0;
 
 input wire clk;
 input wire rst_n;
-input wire [31:0] inst_sram_rdata;
-input wire [31:0] data_sram_rdata;
+input wire [31:0] inst_cache_rdata;
+input wire inst_cache_hit;
+input wire [31:0] data_cache_rdata;
+input wire data_cache_hit;
 
-output wire inst_sram_we;
-output wire [31:0] inst_sram_addr;
-output wire [31:0] inst_sram_wdata;
+output wire inst_cache_re;
+output wire [31:0] inst_cache_raddr;
+output wire inst_cache_we;
+output wire [31:0] inst_cache_waddr;
+output wire [31:0] inst_cache_wdata;
+output wire [2:0] inst_cache_access_sz;
 
-output wire data_sram_we;
-output wire [31:0] data_sram_addr;
-output wire [31:0] data_sram_wdata;
+output wire data_cache_re;
+output wire [31:0] data_cache_raddr;
+output wire data_cache_we;
+output wire [31:0] data_cache_waddr;
+output wire [31:0] data_cache_wdata;
+output wire [2:0] data_cache_access_sz;
 
+output wire [31:0] debug_wb_pc;
+output wire [3:0] debug_wb_rf_we;
+output wire [4:0] debug_wb_rf_wnum;
+output wire [31:0] debug_wb_rf_wdata;
 
 wire pc_wen;
 wire pc_is_wrong;
@@ -190,11 +214,14 @@ pc U_pc(
 //             .wdata(32'b0),
 //             .wsz(3'b0));
 
-assign if2_inst = inst_sram_rdata;
-assign if2_icache_hit = 1'b1;
-assign inst_sram_addr = if1_pc;
-assign inst_sram_we = 1'b0;
-assign inst_sram_wdata = 32'b0;
+assign inst_cache_re = if1_icache_re;
+assign if2_inst = inst_cache_rdata;
+assign if2_icache_hit = inst_cache_hit;
+assign inst_cache_raddr = if1_pc;
+assign inst_cache_we = 4'b0;
+assign inst_cache_access_sz = 3'b0;
+assign inst_cache_waddr = 32'b0;
+assign inst_cache_wdata = 32'b0;
 
 reg_if1_if2 if1_if2(
             .clk(clk),
@@ -238,6 +265,11 @@ gr U_gr(
             .raddr1(id_reg_j),
             .raddr2(id_reg_k),
             .raddr3(id_reg_d));
+
+assign debug_wb_pc = mm2_wb.pc;
+assign debug_wb_rf_we = {4{mm2_wb.reg_d_wen}};
+assign debug_wb_rf_wnum = wb_gr_waddr;
+assign debug_wb_rf_wdata = wb_gr_wdata;
 
 decoder U_decoder(
             .reg_d(id_reg_d),
@@ -372,7 +404,8 @@ reg_ex_mm1 ex_mm1(
             .ex_reg_d(id_ex.reg_d),
             .ex_op(id_ex.op),
             .ex_op_type(id_ex.op_type),
-            .ex_reg_d_wen(ex_reg_d_wen));
+            .ex_reg_d_wen(ex_reg_d_wen),
+            .ex_pc(id_ex.pc));
 
 // dcache U_dcache(
 //             .clk(clk),
@@ -386,11 +419,14 @@ reg_ex_mm1 ex_mm1(
 //             .rdata(mm2_rdata),
 //             .hit(mm2_hit));
 
-assign data_sram_addr = ex_mm1.mm_addr;
-assign data_sram_we = ex_mm1.mm_we;
-assign data_sram_wdata = ex_mm1.mm_wdata;
-assign mm2_rdata = data_sram_rdata;
-assign mm2_hit = 1'b1;
+assign data_cache_re = ex_mm1.mm_re;
+assign data_cache_raddr = ex_mm1.mm_addr;
+assign data_cache_we = ex_mm1.mm_we;
+assign data_cache_waddr = ex_mm1.mm_addr;
+assign data_cache_wdata = ex_mm1.mm_wdata;
+assign data_cache_access_sz = ex_mm1.mm_access_sz;
+assign mm2_rdata = data_cache_rdata;
+assign mm2_hit = data_cache_hit;
 
 reg_mm1_mm2 mm1_mm2(
             .clk(clk),
@@ -403,7 +439,8 @@ reg_mm1_mm2 mm1_mm2(
             .mm1_reg_d(ex_mm1.reg_d),
             .mm1_op(ex_mm1.op),
             .mm1_op_type(ex_mm1.op_type),
-            .mm1_reg_d_wen(ex_mm1.reg_d_wen));
+            .mm1_reg_d_wen(ex_mm1.reg_d_wen),
+            .mm1_pc(ex_mm1.pc));
 
 reg_mm2_wb mm2_wb(
             .clk(clk),
@@ -415,7 +452,8 @@ reg_mm2_wb mm2_wb(
             .mm2_op(mm1_mm2.op),
             .mm2_op_type(mm1_mm2.op_type),
             .mm2_rdata(mm2_rdata),
-            .mm2_reg_d_wen(mm1_mm2.reg_d_wen));
+            .mm2_reg_d_wen(mm1_mm2.reg_d_wen),
+            .mm2_pc(mm1_mm2.pc));
 
 regwrite U_regwrite(
             .exe_out(mm2_wb.exe_out),

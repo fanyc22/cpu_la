@@ -1,11 +1,11 @@
 // 暂时未考虑 BREAK 和 SYSCALL
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_3r.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_2ri12.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_bj.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_atomic.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_csr.v"
-`include "/Users/fanyuchen/Desktop/la/cpu/stage_id/decoder_u12i.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/defs.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_id/decoder_3r.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_id/decoder_2ri12.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_id/decoder_bj.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_id/decoder_atomic.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_id/decoder_csr.v"
+`include "/Users/fanyuchen/Desktop/la/cpu_noram/stage_id/decoder_u12i.v"
 
 module decoder (
 //output
