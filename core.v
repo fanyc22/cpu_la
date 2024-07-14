@@ -328,7 +328,9 @@ ex_ctrl U_ex_ctrl(
             .mm_re(ex_mm_re),
             .mm_we(ex_mm_we),
             .mm_wdata(ex_mm_wdata),
-            .reg_d_wen(ex_reg_d_wen));
+            .reg_d_wen(ex_reg_d_wen),
+            .pc(id_ex.pc),
+            .u12imm(id_ex.u12imm));
 
 reg_ex_mm1 ex_mm1(
             .clk(clk),
