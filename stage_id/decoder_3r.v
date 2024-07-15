@@ -1,4 +1,4 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module decoder_3r (
 //output
             op,
@@ -9,10 +9,7 @@ input wire [31:0] inst;
 output reg [7:0] op;
 
 always @(*) begin
-    if(inst[31:23] != 8'b00000000) begin
-        op = `OP_INVALID;
-    end
-    else begin
+    if(inst[31:23] == 8'b00000000) begin
         case (inst[22:15])
             8'b00100000: op = `OP_ADD;
             8'b00100010: op = `OP_SUB;
@@ -39,6 +36,9 @@ always @(*) begin
             8'b10010001: op = `OP_SRAI;
             default: op = `OP_INVALID;
         endcase
+    end
+    else begin
+        op = `OP_INVALID;
     end
 end
 

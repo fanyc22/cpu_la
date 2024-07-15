@@ -1,3 +1,4 @@
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module gr (
 //output
             rdata1,
@@ -48,8 +49,8 @@ end
 always @(*) begin
     if(raddr1 == 32'b0)
         rdata1 <= 32'b0;
-    else if(raddr1 == waddr && we)
-        rdata1 <= wdata;
+    // else if(raddr1 == waddr && we)
+    //     rdata1 <= wdata;
     else
         rdata1 <= registers[raddr1];
 end
@@ -57,8 +58,8 @@ end
 always @(*) begin
     if(raddr2 == 32'b0)
         rdata2 <= 32'b0;
-    else if(raddr2 == waddr && we)
-        rdata2 <= wdata;
+    // else if(raddr2 == waddr && we)
+    //     rdata2 <= wdata;
     else
         rdata2 <= registers[raddr2];
 end
@@ -66,8 +67,8 @@ end
 always @(*) begin
     if(raddr3 == 32'b0)
         rdata3 <= 32'b0;
-    else if(raddr3 == waddr && we)
-        rdata3 <= wdata;
+    // else if(raddr3 == waddr && we)
+    //     rdata3 <= wdata;
     else
         rdata3 <= registers[raddr3];
 end

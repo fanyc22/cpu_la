@@ -1,3 +1,4 @@
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module reg_if1_if2 (
 //output
 

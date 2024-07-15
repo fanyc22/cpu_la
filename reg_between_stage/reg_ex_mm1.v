@@ -1,3 +1,4 @@
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module reg_ex_mm1 (
 //output
 
@@ -15,7 +16,8 @@ module reg_ex_mm1 (
             ex_reg_d,
             ex_op,
             ex_op_type,
-            ex_reg_d_wen);
+            ex_reg_d_wen,
+            ex_pc);
 
 input wire clk;
 input wire rst_n;
@@ -31,6 +33,7 @@ input wire [4:0] ex_reg_d;
 input wire [7:0] ex_op;
 input wire [2:0] ex_op_type;
 input wire ex_reg_d_wen;
+input wire [31:0] ex_pc;
 
 reg [31:0] exe_out;
 reg [2:0] mm_access_sz;
@@ -42,6 +45,7 @@ reg [4:0] reg_d;
 reg [7:0] op;
 reg [2:0] op_type;
 reg reg_d_wen;
+reg [31:0] pc;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
@@ -55,6 +59,7 @@ always @(posedge clk ) begin
         op <= 8'b0;
         op_type <= 3'b0;
         reg_d_wen <= 1'b0;
+        pc <= 32'b0;
     end
     else if(wen) begin
         exe_out <= ex_exe_out;
@@ -67,6 +72,7 @@ always @(posedge clk ) begin
         op <= flush ? 0 : ex_op;
         op_type <= flush ? 0 : ex_op_type;
         reg_d_wen <= flush ? 0 : ex_reg_d_wen;
+        pc <= flush ? 0 : ex_pc;
     end
 end
 

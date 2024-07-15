@@ -1,4 +1,4 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 
 module hazard_ctrl (
 //output
@@ -177,7 +177,7 @@ end
 
 always @(*) begin
     bp_fault = (ex_branch != ex_branch_bp) ? 1 :
-                (ex_pc_branch != id_pc) ? 1 : 0;
+                (ex_branch && (ex_pc_branch != id_pc)) ? 1 : 0;
 end
 
 always @(*) begin

@@ -1,3 +1,4 @@
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module pc(/*autoport*/
 //output
       pc_reg,
@@ -11,7 +12,7 @@ module pc(/*autoport*/
       pc_is_wrong,
       pc_correct);
 
-parameter PC_INITIAL = 32'h0000_0000;
+parameter PC_INITIAL = 32'h1bff_fffc;
 
 input wire rst_n;
 input wire clk;
@@ -22,7 +23,7 @@ input wire is_branch;
 input wire pc_is_wrong;
 input wire [31:0] pc_correct;
 
-output reg[31:0] pc_reg;
+output reg [31:0] pc_reg;
 output reg icache_re;
 
 reg[31:0] pc_next;
@@ -48,10 +49,19 @@ always @(*) begin
 end
 
 always @(posedge clk) begin
-    pc_reg <= pc_next;
-    icache_re <= pc_wen;
+    if(!rst_n) begin
+        
+        icache_re <= 0;
+    end
+    else begin
+        
+        icache_re <= pc_wen;
+    end
+    
 end
-
+always @(posedge clk) begin
+    pc_reg <= pc_next;
+end
 // always @(posedge clk) $display("PC=%x",pc_reg);
 
 endmodule

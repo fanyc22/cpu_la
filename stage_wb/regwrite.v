@@ -1,4 +1,4 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module regwrite (
 //output
         gr_waddr,
@@ -7,13 +7,13 @@ module regwrite (
         exe_out,
         reg_d,
         op,
-        op_type,
+        // op_type,
         rdata);
 
 input wire[31:0] exe_out;
 input wire[4:0] reg_d;
 input wire[7:0] op;
-input wire[2:0] op_type;
+// input wire[2:0] op_type;
 input wire[31:0] rdata;
 
 output reg[4:0] gr_waddr;

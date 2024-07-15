@@ -1,4 +1,4 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module branch (
 //output
             branch,
@@ -15,6 +15,9 @@ input wire [31:0] rd;
 
 wire signed [31:0] rj_s;
 wire signed [31:0] rd_s;
+
+assign rj_s = rj;
+assign rd_s = rd;
 
 output reg branch;
 

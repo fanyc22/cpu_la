@@ -1,4 +1,4 @@
-`include "/Users/fanyuchen/Desktop/la/cpu/defs.v"
+`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
 module decoder_2ri12 (
 //output
             op,
