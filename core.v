@@ -104,6 +104,9 @@ wire [13:0] id_csr;
 wire id_reg_j_ren;
 wire id_reg_k_ren;
 wire id_reg_d_ren;
+wire [31:0] id_rj_from_fwd;
+wire [31:0] id_rk_from_fwd;
+wire [31:0] id_rd_from_fwd;
 
 wire [31:0] ex_alu_in2;
 wire [31:0] ex_alu_out;
@@ -118,9 +121,6 @@ wire [31:0] ex_mm_wdata;
 wire ex_branch;
 wire [31:0] ex_pc_branch;
 wire ex_reg_d_wen;
-wire [31:0] ex_rj_from_fwd;
-wire [31:0] ex_rk_from_fwd;
-wire [31:0] ex_rd_from_fwd;
 
 wire [31:0] mm2_rdata;
 wire mm2_hit;
@@ -128,9 +128,9 @@ wire mm2_hit;
 wire [4:0] wb_gr_waddr;
 wire [31:0] wb_gr_wdata;
 
-wire [1:0] fwd_src_j;
-wire [1:0] fwd_src_k;
-wire [1:0] fwd_src_d;
+wire [2:0] fwd_src_j;
+wire [2:0] fwd_src_k;
+wire [2:0] fwd_src_d;
 
 hazard_ctrl U_hazard_ctrl(
         .if1_if2_flush(if1_if2_flush),
@@ -159,12 +159,15 @@ hazard_ctrl U_hazard_ctrl(
         .id_pc(if2_id.pc),
         .id_is_branch(id_is_branch),
         .id_branch_bp(if2_id.branch_bp),
-        .ex_reg_j_ren(id_ex.reg_j_ren),
-        .ex_reg_j(id_ex.reg_j),
-        .ex_reg_k_ren(id_ex.reg_k_ren),
-        .ex_reg_k(id_ex.reg_k),
-        .ex_reg_d_ren(id_ex.reg_d_ren),
+        .id_reg_j_ren(id_reg_j_ren),
+        .id_reg_j(id_reg_j),
+        .id_reg_k_ren(id_reg_k_ren),
+        .id_reg_k(id_reg_k),
+        .id_reg_d_ren(id_reg_d_ren),
+        .id_reg_d(id_reg_d),
+        .ex_reg_d_wen(ex_reg_d_wen),
         .ex_reg_d(id_ex.reg_d),
+        .ex_mm_load(ex_mm_re),
         .mm1_reg_d_wen(ex_mm1.reg_d_wen),
         .mm1_reg_d(ex_mm1.reg_d),
         .mm1_mm_load(ex_mm1.mm_re),
@@ -281,6 +284,36 @@ decoder U_decoder(
             .reg_k_ren(id_reg_k_ren),
             .reg_d_ren(id_reg_d_ren));
 
+fwd U_fwd_j(
+            .reg_out(id_rj_from_fwd),
+            .reg_from_gr(id_rj_from_gr),
+            .reg_from_ex(ex_exe_out),
+            .reg_from_mm1(ex_mm1.exe_out),
+            .reg_from_mm2(mm1_mm2.exe_out),
+            .mem_from_mm2(mm2_rdata),
+            .reg_from_wb(wb_gr_wdata),
+            .fwd_ctrl(fwd_src_j));
+
+fwd U_fwd_k(
+            .reg_out(id_rk_from_fwd),
+            .reg_from_gr(id_rk_from_gr),
+            .reg_from_ex(ex_exe_out),
+            .reg_from_mm1(ex_mm1.exe_out),
+            .reg_from_mm2(mm1_mm2.exe_out),
+            .mem_from_mm2(mm2_rdata),
+            .reg_from_wb(wb_gr_wdata),
+            .fwd_ctrl(fwd_src_k));
+
+fwd U_fwd_d(
+            .reg_out(id_rd_from_fwd),
+            .reg_from_gr(id_rd_from_gr),
+            .reg_from_ex(ex_exe_out),
+            .reg_from_mm1(ex_mm1.exe_out),
+            .reg_from_mm2(mm1_mm2.exe_out),
+            .mem_from_mm2(mm2_rdata),
+            .reg_from_wb(wb_gr_wdata),
+            .fwd_ctrl(fwd_src_d));
+
 reg_id_ex id_ex(
             .clk(clk),
             .rst_n(rst_n),
@@ -288,9 +321,9 @@ reg_id_ex id_ex(
             .flush(id_ex_flush),
             .bp_flush(id_ex_bp_flush),
             .id_pc(if2_id.pc),
-            .id_rj_from_gr(id_rj_from_gr),
-            .id_rk_from_gr(id_rk_from_gr),
-            .id_rd_from_gr(id_rd_from_gr),
+            .id_rj_from_fwd(id_rj_from_fwd),
+            .id_rk_from_fwd(id_rk_from_fwd),
+            .id_rd_from_fwd(id_rd_from_fwd),
             .id_reg_d(id_reg_d),
             .id_reg_j(id_reg_j),
             .id_reg_k(id_reg_k),
@@ -310,42 +343,18 @@ reg_id_ex id_ex(
             .id_reg_k_ren(id_reg_k_ren),
             .id_reg_d_ren(id_reg_d_ren));
 
-fwd U_fwd_j(
-            .reg_out(ex_rj_from_fwd),
-            .reg_from_gr(id_ex.rj_from_gr),
-            .reg_from_ex_mm1(ex_mm1.exe_out),
-            .reg_from_mm1_mm2(mm1_mm2.exe_out),
-            .reg_from_mm2_wb(wb_gr_wdata),
-            .fwd_ctrl(fwd_src_j));
-
-fwd U_fwd_k(
-            .reg_out(ex_rk_from_fwd),
-            .reg_from_gr(id_ex.rk_from_gr),
-            .reg_from_ex_mm1(ex_mm1.exe_out),
-            .reg_from_mm1_mm2(mm1_mm2.exe_out),
-            .reg_from_mm2_wb(wb_gr_wdata),
-            .fwd_ctrl(fwd_src_k));
-
-fwd U_fwd_d(
-            .reg_out(ex_rd_from_fwd),
-            .reg_from_gr(id_ex.rd_from_gr),
-            .reg_from_ex_mm1(ex_mm1.exe_out),
-            .reg_from_mm1_mm2(mm1_mm2.exe_out),
-            .reg_from_mm2_wb(wb_gr_wdata),
-            .fwd_ctrl(fwd_src_d));
-
 alu_in2_mux U_alu_in2_mux(
             .alu_in2(ex_alu_in2),
             .op(id_ex.op),
             .op_type(id_ex.op_type),
-            .rk_from_gr(id_ex.rk_from_gr),
+            .rk_from_fwd(id_ex.rk_from_fwd),
             .imm_unext(id_ex.imm),
             .imm_sz(id_ex.imm_sz),
             .shift_imm(id_ex.shift_imm),
             .flag_unsigned(id_ex.flag_unsigned));
 
 alu U_alu(
-            .alu_in1(id_ex.rj_from_gr),
+            .alu_in1(id_ex.rj_from_fwd),
             .alu_in2(ex_alu_in2),
             .alu_op(id_ex.op),
             .alu_out(ex_alu_out),
@@ -355,13 +364,13 @@ branch U_branch(
             .branch(ex_branch),
             .op(id_ex.op),
             .op_type(id_ex.op_type),
-            .rj(id_ex.rj_from_gr),
-            .rd(id_ex.rd_from_gr));
+            .rj(id_ex.rj_from_fwd),
+            .rd(id_ex.rd_from_fwd));
 
 pc_branch U_pc_branch(
             .pc_branch(ex_pc_branch),
             .op(id_ex.op),
-            .rj(id_ex.rj_from_gr),
+            .rj(id_ex.rj_from_fwd),
             .pc(id_ex.pc),
             .offset(id_ex.imm));
 
@@ -370,7 +379,7 @@ ex_ctrl U_ex_ctrl(
             .op_type(id_ex.op_type),
             .alu_out(ex_alu_out),
             .ex_access_sz(id_ex.access_sz),
-            .ex_rd_from_gr(id_ex.rd_from_gr),
+            .ex_rd_from_gr(id_ex.rd_from_fwd),
             .mm_access_sz(ex_mm_access_sz),
             .mm_addr(ex_mm_addr),
             .exe_out(ex_exe_out),

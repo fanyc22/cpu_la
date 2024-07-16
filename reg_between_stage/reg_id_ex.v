@@ -9,9 +9,9 @@ module reg_id_ex (
             flush,
             bp_flush,
             id_pc,
-            id_rj_from_gr,
-            id_rk_from_gr,
-            id_rd_from_gr,
+            id_rj_from_fwd,
+            id_rk_from_fwd,
+            id_rd_from_fwd,
             id_reg_d,
             id_reg_j,
             id_reg_k,
@@ -37,9 +37,9 @@ input wire wen;
 input wire flush;
 input wire bp_flush;
 input wire [31:0] id_pc;
-input wire [31:0] id_rj_from_gr;
-input wire [31:0] id_rk_from_gr;
-input wire [31:0] id_rd_from_gr;
+input wire [31:0] id_rj_from_fwd;
+input wire [31:0] id_rk_from_fwd;
+input wire [31:0] id_rd_from_fwd;
 input wire [4:0] id_reg_d;
 input wire [4:0] id_reg_j;
 input wire [4:0] id_reg_k;
@@ -60,9 +60,9 @@ input wire id_reg_k_ren;
 input wire id_reg_d_ren;
 
 reg [31:0] pc;
-reg [31:0] rj_from_gr;
-reg [31:0] rk_from_gr;
-reg [31:0] rd_from_gr;
+reg [31:0] rj_from_fwd;
+reg [31:0] rk_from_fwd;
+reg [31:0] rd_from_fwd;
 reg [4:0] reg_d;
 reg [4:0] reg_j;
 reg [4:0] reg_k;
@@ -85,9 +85,9 @@ reg reg_d_ren;
 always @(posedge clk ) begin
     if(!rst_n) begin
         pc <= 32'b0;
-        rj_from_gr <= 32'b0;
-        rk_from_gr <= 32'b0;
-        rd_from_gr <= 32'b0;
+        rj_from_fwd <= 32'b0;
+        rk_from_fwd <= 32'b0;
+        rd_from_fwd <= 32'b0;
         reg_d <= 5'b0;
         reg_j <= 5'b0;
         reg_k <= 5'b0;
@@ -109,9 +109,9 @@ always @(posedge clk ) begin
     end
     else if(wen) begin
         pc <= flush ? 0 : id_pc;
-        rj_from_gr <= flush ? 0 : id_rj_from_gr;
-        rk_from_gr <= flush ? 0 : id_rk_from_gr;
-        rd_from_gr <= flush ? 0 : id_rd_from_gr;
+        rj_from_fwd <= flush ? 0 : id_rj_from_fwd;
+        rk_from_fwd <= flush ? 0 : id_rk_from_fwd;
+        rd_from_fwd <= flush ? 0 : id_rd_from_fwd;
         reg_d <= flush ? 5'b0 : id_reg_d;
         reg_j <= flush ? 5'b0 : id_reg_j;
         reg_k <= flush ? 5'b0 : id_reg_k;

@@ -6,7 +6,7 @@ module alu_in2_mux (
 //input
     op,
     op_type,
-    rk_from_gr,
+    rk_from_fwd,
     imm_unext,
     imm_sz,
     shift_imm,
@@ -14,7 +14,7 @@ module alu_in2_mux (
 
 input wire [7:0] op;
 input wire [2:0] op_type;
-input wire [31:0] rk_from_gr;
+input wire [31:0] rk_from_fwd;
 input wire [25:0] imm_unext;
 input wire [2:0] imm_sz;
 input wire [4:0] shift_imm;
@@ -35,7 +35,7 @@ end
 
 always @(*) begin
     if(op_type == `OP_TYPE_3R && op != `OP_SLLI && op != `OP_SRAI && op != `OP_SRLI) begin
-        alu_in2 = rk_from_gr;
+        alu_in2 = rk_from_fwd;
     end
     else if(op_type == `OP_TYPE_3R) begin 
         alu_in2 = {27'd0, shift_imm};

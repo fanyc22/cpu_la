@@ -31,12 +31,15 @@ module hazard_ctrl (
         id_is_branch,
         id_branch_bp,
 
-        ex_reg_j_ren,
-        ex_reg_j,
-        ex_reg_k_ren,
-        ex_reg_k,
-        ex_reg_d_ren,
+        id_reg_j_ren,
+        id_reg_j,
+        id_reg_k_ren,
+        id_reg_k,
+        id_reg_d_ren,
+        id_reg_d,
+        ex_reg_d_wen,
         ex_reg_d,
+        ex_mm_load,
         mm1_reg_d_wen,
         mm1_reg_d,
         mm1_mm_load,
@@ -56,12 +59,15 @@ input wire ex_branch_bp;
 input wire id_is_branch;
 input wire id_branch_bp;
     
-input wire ex_reg_j_ren;
-input wire[4:0] ex_reg_j;
-input wire ex_reg_k_ren;
-input wire[4:0] ex_reg_k;
-input wire ex_reg_d_ren;
+input wire id_reg_j_ren;
+input wire[4:0] id_reg_j;
+input wire id_reg_k_ren;
+input wire[4:0] id_reg_k;
+input wire id_reg_d_ren;
+input wire[4:0] id_reg_d;
+input wire ex_reg_d_wen;
 input wire[4:0] ex_reg_d;
+input wire ex_mm_load;
 input wire mm1_reg_d_wen;
 input wire[4:0] mm1_reg_d;
 input wire mm1_mm_load;
@@ -88,9 +94,9 @@ output reg ex_mm1_wen;
 output reg mm1_mm2_wen;
 output reg mm2_wb_wen;
 output reg pc_wen;
-output reg[1:0] fwd_src_j;
-output reg[1:0] fwd_src_k;
-output reg[1:0] fwd_src_d;
+output reg[2:0] fwd_src_j;
+output reg[2:0] fwd_src_k;
+output reg[2:0] fwd_src_d;
 
 reg not_branch;
 reg bp_fault;
@@ -103,18 +109,22 @@ wire lau;
 assign lau = lau_j | lau_k | lau_d;
 
 always @(*) begin
-    if(ex_reg_j_ren && ex_reg_j)begin
-        if(ex_reg_j == mm1_reg_d && mm1_reg_d_wen) begin
+    if(id_reg_j_ren && id_reg_j)begin
+        if(id_reg_j == ex_reg_d && ex_reg_d_wen) begin
+            lau_j <= ex_mm_load;
+            fwd_src_j <= `FWD_SRC_EX;
+        end
+        else if(id_reg_j == mm1_reg_d && mm1_reg_d_wen) begin
             lau_j <= mm1_mm_load;
-            fwd_src_j <= `FWD_SRC_EX_MM1;
+            fwd_src_j <= `FWD_SRC_MM1;
         end
-        else if(ex_reg_j == mm2_reg_d && mm2_reg_d_wen) begin
-            lau_j <= mm2_mm_load;
-            fwd_src_j <= `FWD_SRC_MM1_MM2;
-        end
-        else if(ex_reg_j == wb_reg_d && wb_reg_d_wen) begin
+        else if(id_reg_j == mm2_reg_d && mm2_reg_d_wen) begin
             lau_j <= 0;
-            fwd_src_j <= `FWD_SRC_MM2_WB;
+            fwd_src_j <= mm2_mm_load ? `FWD_SRC_MM2_MEM :`FWD_SRC_MM2_REG;
+        end
+        else if(id_reg_j == wb_reg_d && wb_reg_d_wen) begin
+            lau_j <= 0;
+            fwd_src_j <= `FWD_SRC_WB;
         end
         else begin
             lau_j <= 0;
@@ -128,18 +138,22 @@ always @(*) begin
 end
 
 always @(*) begin
-    if(ex_reg_k_ren && ex_reg_k)begin
-        if(ex_reg_k == mm1_reg_d && mm1_reg_d_wen) begin
+    if(id_reg_k_ren && id_reg_k)begin
+        if(id_reg_k == ex_reg_d && ex_reg_d_wen) begin
+            lau_k <= ex_mm_load;
+            fwd_src_k <= `FWD_SRC_EX;
+        end
+        else if(id_reg_k == mm1_reg_d && mm1_reg_d_wen) begin
             lau_k <= mm1_mm_load;
-            fwd_src_k <= `FWD_SRC_EX_MM1;
+            fwd_src_k <= `FWD_SRC_MM1;
         end
-        else if(ex_reg_k == mm2_reg_d && mm2_reg_d_wen) begin
-            lau_k <= mm2_mm_load;
-            fwd_src_k <= `FWD_SRC_MM1_MM2;
-        end
-        else if(ex_reg_k == wb_reg_d && wb_reg_d_wen) begin
+        else if(id_reg_k == mm2_reg_d && mm2_reg_d_wen) begin
             lau_k <= 0;
-            fwd_src_k <= `FWD_SRC_MM2_WB;
+            fwd_src_k <= mm2_mm_load ? `FWD_SRC_MM2_MEM :`FWD_SRC_MM2_REG;
+        end
+        else if(id_reg_k == wb_reg_d && wb_reg_d_wen) begin
+            lau_k <= 0;
+            fwd_src_k <= `FWD_SRC_WB;
         end
         else begin
             lau_k <= 0;
@@ -153,18 +167,22 @@ always @(*) begin
 end
 
 always @(*) begin
-    if(ex_reg_d_ren && ex_reg_d)begin
-        if(ex_reg_d == mm1_reg_d && mm1_reg_d_wen) begin
+    if(id_reg_d_ren && id_reg_d)begin
+        if(id_reg_d == ex_reg_d && ex_reg_d_wen) begin
+            lau_d <= ex_mm_load;
+            fwd_src_d <= `FWD_SRC_EX;
+        end
+        else if(id_reg_d == mm1_reg_d && mm1_reg_d_wen) begin
             lau_d <= mm1_mm_load;
-            fwd_src_d <= `FWD_SRC_EX_MM1;
+            fwd_src_d <= `FWD_SRC_MM1;
         end
-        else if(ex_reg_d == mm2_reg_d && mm2_reg_d_wen) begin
-            lau_d <= mm2_mm_load;
-            fwd_src_d <= `FWD_SRC_MM1_MM2;
-        end
-        else if(ex_reg_d == wb_reg_d && wb_reg_d_wen) begin
+        else if(id_reg_d == mm2_reg_d && mm2_reg_d_wen) begin
             lau_d <= 0;
-            fwd_src_d <= `FWD_SRC_MM2_WB;
+            fwd_src_d <= mm2_mm_load ? `FWD_SRC_MM2_MEM :`FWD_SRC_MM2_REG;
+        end
+        else if(id_reg_d == wb_reg_d && wb_reg_d_wen) begin
+            lau_d <= 0;
+            fwd_src_d <= `FWD_SRC_WB;
         end
         else begin
             lau_d <= 0;
