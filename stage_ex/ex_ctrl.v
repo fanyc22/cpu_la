@@ -51,6 +51,9 @@ always @(*) begin
     else if(op == `OP_PCADDU12I) begin
         exe_out = pc + {u12imm,12'b0};
     end
+    else if (op == `OP_BL) begin
+        exe_out = pc + 32'd4;
+    end
     else begin
         exe_out = alu_out;
     end
