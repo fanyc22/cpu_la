@@ -71,15 +71,16 @@ wire mm2_wb_flush;
 wire if1_if2_wen;
 wire if2_id_wen;
 wire id_ex_wen;
+wire id_ex_bp_flush;
 wire ex_mm1_wen;
 wire mm1_mm2_wen;
 wire mm2_wb_wen;
 
 wire [31:0] if1_pc;
 wire if1_icache_re;
+wire if1_branch_taken;
+wire [31:0] if1_branch_address;
 
-wire if2_branch_taken;
-wire [31:0] if2_branch_address;
 wire [31:0] if2_inst;
 wire if2_icache_hit;
 
@@ -141,6 +142,7 @@ hazard_ctrl U_hazard_ctrl(
         .if1_if2_wen(if1_if2_wen),
         .if2_id_wen(if2_id_wen),
         .id_ex_wen(id_ex_wen),
+        .id_ex_bp_flush(id_ex_bp_flush),
         .ex_mm1_wen(ex_mm1_wen),
         .mm1_mm2_wen(mm1_mm2_wen),
         .mm2_wb_wen(mm2_wb_wen),
@@ -179,8 +181,8 @@ pc U_pc(
          .pc_wen(pc_wen),
          .pc_is_wrong(pc_is_wrong),
          .pc_correct(pc_correct),
-         .is_branch(if2_branch_taken),
-         .branch_address(if2_branch_address),
+         .is_branch(if1_branch_taken),
+         .branch_address(if1_branch_address),
          .icache_re(if1_icache_re));
 
 // icache U_icache(
@@ -214,14 +216,16 @@ reg_if1_if2 if1_if2(
             .rst_n(rst_n),
             .wen(if1_if2_wen),
             .flush(if1_if2_flush),
-            .if1_pc(if1_pc));
+            .if1_pc(if1_pc),
+            .if1_branch_bp(if1_branch_taken));
 
 bp U_bp(
-            .branch(if2_branch_taken),
-            .target(if2_branch_address),
+            .branch(if1_branch_taken),
+            .target(if1_branch_address),
             .clk(clk),
             .rst_n(rst_n),
-            .pc_low(if1_if2.pc[5:0]),
+        //     .if1_if2_flushed(if1_if2.flushed),
+            .pc_low(if1_pc[5:0]),
             .we(id_ex.is_branch),
             .hitted(ex_branch),
             .wtarget(ex_pc_branch),
@@ -236,7 +240,7 @@ reg_if2_id if2_id(
             .if2_pc(if1_if2.pc),
             .if2_inst(if2_inst),
             .if2_icache_hit(if2_icache_hit),
-            .if2_branch_bp(if2_branch_taken),
+            .if2_branch_bp(if1_if2.branch_bp),
             .if1_if2_cache_valid(if1_if2.cache_valid));
 
 gr U_gr(
@@ -282,6 +286,7 @@ reg_id_ex id_ex(
             .rst_n(rst_n),
             .wen(id_ex_wen),
             .flush(id_ex_flush),
+            .bp_flush(id_ex_bp_flush),
             .id_pc(if2_id.pc),
             .id_rj_from_gr(id_rj_from_gr),
             .id_rk_from_gr(id_rk_from_gr),
@@ -446,7 +451,7 @@ regwrite U_regwrite(
             .reg_d(mm2_wb.reg_d),
             .op(mm2_wb.op),
             // .op_type(mm2_wb.op_type),
-            .rdata(mm2_rdata),
+            .rdata(mm2_wb.rdata),
             .gr_waddr(wb_gr_waddr),
             .gr_wdata(wb_gr_wdata));
 

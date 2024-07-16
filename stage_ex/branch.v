@@ -28,6 +28,7 @@ always @(*) begin
             `OP_B: branch = 1;
             `OP_BL: branch = 1;
             `OP_BEQ: branch = (rj_s == rd_s);
+            `OP_BNE: branch = (rj_s != rd_s);
             `OP_BLT: branch = (rj_s < rd_s);
             `OP_BGE: branch = (rj_s >= rd_s);
             `OP_BLTU: branch = (rj < rd);

@@ -14,6 +14,7 @@ always @(*) begin
         6'b010100: op = `OP_B;
         6'b010101: op = `OP_BL;
         6'b010110: op = `OP_BEQ;
+        6'b010111: op = `OP_BNE;
         6'b011000: op = `OP_BLT;
         6'b011001: op = `OP_BGE;
         6'b011010: op = `OP_BLTU;

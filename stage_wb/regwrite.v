@@ -29,7 +29,10 @@ always @(*) begin
 end
 
 always @(*) begin
-    gr_waddr = reg_d;
+    if(op == `OP_BL) 
+        gr_waddr = 5'h01;
+    else
+        gr_waddr = reg_d;
 end
     
 endmodule

@@ -11,6 +11,7 @@ module hazard_ctrl (
         if1_if2_wen,
         if2_id_wen,
         id_ex_wen,
+        id_ex_bp_flush,
         ex_mm1_wen,
         mm1_mm2_wen,
         mm2_wb_wen,
@@ -76,6 +77,7 @@ output reg [31:0] pc_correct;
 output reg if1_if2_flush;
 output reg if2_id_flush;
 output reg id_ex_flush;
+output reg id_ex_bp_flush;
 output reg ex_mm1_flush;
 output reg mm1_mm2_flush;
 output reg mm2_wb_flush;
@@ -200,6 +202,7 @@ always @(*) begin
         if1_if2_wen <= 0;
         if2_id_wen <= 0;
         id_ex_wen <= 0;
+        id_ex_bp_flush <= 0;
         ex_mm1_wen <= 1;
         mm1_mm2_wen <= 1;
         mm2_wb_wen <= 1;
@@ -219,6 +222,7 @@ always @(*) begin
         if1_if2_wen <= 1;
         if2_id_wen <= 1;
         id_ex_wen <= 1;
+        id_ex_bp_flush <= 0;
         ex_mm1_wen <= 1;
         mm1_mm2_wen <= 1;
         mm2_wb_wen <= 1;
@@ -238,6 +242,7 @@ always @(*) begin
         if1_if2_wen <= 1;
         if2_id_wen <= 1;
         id_ex_wen <= 1;
+        id_ex_bp_flush <= 1;
         ex_mm1_wen <= 1;
         mm1_mm2_wen <= 1;
         mm2_wb_wen <= 1;
@@ -257,6 +262,7 @@ always @(*) begin
         if1_if2_wen <= 1;
         if2_id_wen <= 1;
         id_ex_wen <= 1;
+        id_ex_bp_flush <= 0;
         ex_mm1_wen <= 1;
         mm1_mm2_wen <= 1;
         mm2_wb_wen <= 1;

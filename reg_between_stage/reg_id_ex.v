@@ -7,6 +7,7 @@ module reg_id_ex (
             rst_n,
             wen,
             flush,
+            bp_flush,
             id_pc,
             id_rj_from_gr,
             id_rk_from_gr,
@@ -34,6 +35,7 @@ input wire clk;
 input wire rst_n;
 input wire wen;
 input wire flush;
+input wire bp_flush;
 input wire [31:0] id_pc;
 input wire [31:0] id_rj_from_gr;
 input wire [31:0] id_rk_from_gr;
@@ -124,7 +126,7 @@ always @(posedge clk ) begin
         access_sz <= flush ? 3'b0 : id_access_sz;
         is_branch <= flush ? 1'b0 : id_is_branch;
         csr <= flush ? 14'b0 : id_csr;
-        branch_bp <= flush ? 1'b0 : id_branch_bp;
+        branch_bp <= flush ? 1'b0 : (bp_flush? 0 : id_branch_bp);
         reg_j_ren <= flush ? 1'b0 : id_reg_j_ren;
         reg_k_ren <= flush ? 1'b0 : id_reg_k_ren;
         reg_d_ren <= flush ? 1'b0 : id_reg_d_ren;

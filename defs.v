@@ -47,13 +47,14 @@
 `define OP_B 8'd39
 `define OP_BL 8'd40
 `define OP_BEQ 8'd41
-`define OP_BLT 8'd42
-`define OP_BGE 8'd43
-`define OP_BLTU 8'd44
-`define OP_BGEU 8'd45
+`define OP_BNE 8'd42
+`define OP_BLT 8'd43
+`define OP_BGE 8'd44
+`define OP_BLTU 8'd45
+`define OP_BGEU 8'd46
 //atomic
-`define OP_LL 8'd46
-`define OP_SC 8'd47
+`define OP_LL 8'd47
+`define OP_SC 8'd48
 //csr
 `define OP_CSRRD 8'd29
 `define OP_CSRWR 8'd30

@@ -78,7 +78,7 @@ end
 always @(*) begin
     reg_d_wen = (op_type == `OP_TYPE_3R && (op != `OP_BREAK && op != `OP_SYSCALL)) || 
             (op_type == `OP_TYPE_2RI12 && (op != `OP_ST && op != `OP_CACOP)) ||
-            (op_type == `OP_TYPE_BJ && (op == `OP_JIRL)) ||
+            (op_type == `OP_TYPE_BJ && (op == `OP_JIRL || op == `OP_BL)) ||
             (op_type == `OP_TYPE_ATOMIC && (op == `OP_LL)) ||
             (op_type == `OP_TYPE_CSR) ||
             (op_type == `OP_TYPE_U12I);

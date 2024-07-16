@@ -7,6 +7,7 @@ module bp (
 //input
             clk,
             rst_n,
+            // if1_if2_flushed,
             pc_low,
             we,
             hitted,
@@ -15,6 +16,7 @@ module bp (
 
 input wire clk;
 input wire rst_n;
+// input wire if1_if2_flushed;
 input wire[5:0] pc_low;
 input wire we;
 input wire hitted;
@@ -40,7 +42,7 @@ always @(posedge clk ) begin
     end
 end
 
-always @(posedge clk) begin
+always @(*) begin
     if(!rst_n) begin
         branch <= 1'b0;
         target <= 32'b0;

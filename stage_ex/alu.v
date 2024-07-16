@@ -19,13 +19,14 @@ output reg[31:0] alu_out;
 output reg alu_zero;
 // output reg overflow;
 
-wire signed alu_in1_s ;
-wire signed alu_in2_s ;
+wire signed [31:0] alu_in1_s ;
+wire signed [31:0] alu_in2_s ;
 
 wire [31:0] add_out;
 wire [31:0] sub_out;
 wire [31:0] and_out;
 wire [31:0] or_out;
+wire [31:0] nor_out;
 wire [31:0] xor_out;
 wire [31:0] sll_out;
 wire [31:0] srl_out;
@@ -44,10 +45,11 @@ assign add_out = alu_in1 + alu_in2;
 assign sub_out = alu_in1 - alu_in2;
 assign and_out = alu_in1 & alu_in2;
 assign or_out = alu_in1 | alu_in2;
+assign nor_out = ~(alu_in1 | alu_in2);
 assign xor_out = alu_in1 ^ alu_in2;
 assign sll_out = alu_in1 << alu_in2[4:0];
 assign srl_out = alu_in1 >> alu_in2[4:0];
-assign sra_out = alu_in1 >>> alu_in2[4:0];
+assign sra_out = alu_in1_s >>> alu_in2[4:0];
 assign lt_out = alu_in1_s < alu_in2_s;
 assign ltu_out = alu_in1 < alu_in2;
 // assign eq_out = alu_in1 == alu_in2;
@@ -62,6 +64,7 @@ always @(*) begin
         `OP_SUB: alu_out = sub_out;
         `OP_AND: alu_out = and_out;
         `OP_OR: alu_out = or_out;
+        `OP_NOR: alu_out = nor_out;
         `OP_XOR: alu_out = xor_out;
         `OP_SLL: alu_out = sll_out;
         `OP_SRL: alu_out = srl_out;
@@ -73,6 +76,9 @@ always @(*) begin
         `OP_ANDI: alu_out = and_out;
         `OP_ORI: alu_out = or_out;
         `OP_XORI: alu_out = xor_out;
+        `OP_SLLI: alu_out = sll_out;
+        `OP_SRLI: alu_out = srl_out;
+        `OP_SRAI: alu_out = sra_out;
         `OP_SLTI: alu_out = lt_out;
         `OP_SLTUI: alu_out = ltu_out;
         `OP_LD: alu_out = add_out;

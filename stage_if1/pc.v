@@ -33,11 +33,11 @@ always @(*) begin
         pc_next <= PC_INITIAL;
     end
     else if(pc_wen) begin
-        if(is_branch) begin
-            pc_next <= branch_address;
-        end
-        else if(pc_is_wrong) begin
+        if(pc_is_wrong) begin
             pc_next <= pc_correct;
+        end
+        else if(is_branch) begin
+            pc_next <= branch_address;
         end
         else begin
             pc_next <= pc_reg+32'd4;
