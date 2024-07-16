@@ -19,7 +19,7 @@ module ex_ctrl (
         op_type,
         alu_out,
         ex_access_sz,
-        ex_rd_from_gr,
+        ex_rd_from_fwd,
         pc,
         u12imm);
 
@@ -27,7 +27,7 @@ input wire [7:0] op;
 input wire [2:0] op_type;
 input wire [31:0] alu_out;
 input wire [2:0] ex_access_sz;
-input wire [31:0] ex_rd_from_gr;
+input wire [31:0] ex_rd_from_fwd    ;
 input wire [31:0] pc;
 input wire [19:0] u12imm;
 
@@ -72,7 +72,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    mm_wdata = ex_rd_from_gr;
+    mm_wdata = ex_rd_from_fwd;
 end
 
 always @(*) begin

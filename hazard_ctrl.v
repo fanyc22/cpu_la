@@ -212,14 +212,14 @@ always @(*) begin
 
         if1_if2_flush <= 0;
         if2_id_flush <= 0;
-        id_ex_flush <= 0;
-        ex_mm1_flush <= 1;
+        id_ex_flush <= 1;
+        ex_mm1_flush <= 0;
         mm1_mm2_flush <= 0;
         mm2_wb_flush <= 0;
 
         if1_if2_wen <= 0;
         if2_id_wen <= 0;
-        id_ex_wen <= 0;
+        id_ex_wen <= 1;
         id_ex_bp_flush <= 0;
         ex_mm1_wen <= 1;
         mm1_mm2_wen <= 1;

@@ -27,6 +27,8 @@ reg [31:0] pc;
 reg [31:0] inst;
 reg hit;
 reg branch_bp;
+reg stalled;
+reg [31:0] buffer_inst;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
@@ -38,10 +40,31 @@ always @(posedge clk ) begin
     else if(wen) begin
         pc <= flush ? 0 : if2_pc;
         inst <= flush ? 0 : 
-                if1_if2_cache_valid ? if2_inst : 32'b0;
+                if1_if2_cache_valid ? (stalled ? buffer_inst : if2_inst) : 32'b0;
         hit <= flush ? 0 : 
                 if1_if2_cache_valid ? if2_icache_hit : 1'b0;
         branch_bp <= flush ? 0 : if2_branch_bp;
+    end
+end
+
+always @(posedge clk) begin
+    if(!rst_n) begin
+        stalled <= 1'b0;
+    end
+    else begin
+        stalled <= !wen;
+    end
+end
+
+always @(posedge clk) begin
+    if(!rst_n) begin
+        buffer_inst <= 32'b0;
+    end
+    else begin
+        if(!stalled && !wen)
+            buffer_inst <= if2_inst;
+        else
+            buffer_inst <= buffer_inst;
     end
 end
 

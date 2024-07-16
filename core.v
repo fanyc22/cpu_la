@@ -175,7 +175,7 @@ hazard_ctrl U_hazard_ctrl(
         .mm2_reg_d(mm1_mm2.reg_d),
         .mm2_mm_load(mm1_mm2.mm_re),
         .wb_reg_d_wen(mm2_wb.reg_d_wen),
-        .wb_reg_d(mm2_wb.reg_d));
+        .wb_reg_d(wb_gr_waddr));
 
 pc U_pc(
          .pc_reg(if1_pc),
@@ -379,7 +379,7 @@ ex_ctrl U_ex_ctrl(
             .op_type(id_ex.op_type),
             .alu_out(ex_alu_out),
             .ex_access_sz(id_ex.access_sz),
-            .ex_rd_from_gr(id_ex.rd_from_fwd),
+            .ex_rd_from_fwd(id_ex.rd_from_fwd),
             .mm_access_sz(ex_mm_access_sz),
             .mm_addr(ex_mm_addr),
             .exe_out(ex_exe_out),

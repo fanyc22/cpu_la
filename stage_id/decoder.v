@@ -181,6 +181,7 @@ end
 
 always @(*) begin
     reg_d_ren = (op_type == `OP_TYPE_CSR && op != `OP_CSRRD) ||
+                (op_type == `OP_TYPE_2RI12 && op == `OP_ST) ||
                 (op_type == `OP_TYPE_BJ && op != `OP_JIRL && op != `OP_B && op != `OP_BL);
 end
 

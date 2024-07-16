@@ -92,9 +92,9 @@
 `define IMM_SZ_26 3'd5
 `define IMM_SZ_0 3'd0
 
-`define FWD_SRC_EX 3'd3
-`define FWD_SRC_MM1 3'd1
-`define FWD_SRC_MM2_REG 3'd2
-`define FWD_SRC_MM2_MEM 3'd3
-`define FWD_SRC_WB 3'd4
+`define FWD_SRC_EX 3'd1
+`define FWD_SRC_MM1 3'd2
+`define FWD_SRC_MM2_REG 3'd3
+`define FWD_SRC_MM2_MEM 3'd4
+`define FWD_SRC_WB 3'd5
 `define FWD_SRC_NONE 3'd0
