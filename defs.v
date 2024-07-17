@@ -100,3 +100,4 @@
 `define FWD_SRC_NONE 3'd0
 
 `define MUL_CYCLES 6'd5 // real clyles needed is MUL_CYCLES+1
+`define DIV_CYCLES 6'd20 // real clyles needed is MUL_CYCLES+1

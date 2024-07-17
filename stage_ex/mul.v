@@ -3,15 +3,13 @@
 module mul (
 //output
         mul_out_valid,
-        mul_out_h,
-        mul_out_l,
+        mul_out,
 //input
         clk,
         rst_n,
         op,
         mul_in_a,
-        mul_in_b
-);
+        mul_in_b);
 
 input wire clk;
 input wire rst_n;
@@ -20,11 +18,11 @@ input wire [31:0] mul_in_a;
 input wire [31:0] mul_in_b;
 
 output reg mul_out_valid;
-output reg [31:0] mul_out_h;
-output reg [31:0] mul_out_l;
+output reg [31:0] mul_out;
 
 wire mul_in_valid;
-wire [63:0] mul_out;
+wire [63:0] mul_out_signed;
+wire [63:0] mul_out_unsigned;
 
 reg oprating;
 reg [5:0] cycle_cnt;
@@ -70,21 +68,31 @@ always @(*) begin
         mul_out_valid = (cycle_cnt == `MUL_CYCLES);
 end
 
-mult_gen_0 U_mult_gen_0 (
+mult_gen_0 U_mult_gen_signed (
     .CLK(clk),
     .SCLR(rst_n),
     .A(mul_in_a),
     .B(mul_in_b),
-    .P(mul_out));
+    .P(mul_out_signed));
+
+mult_gen_1 U_mult_gen_unsigned (
+    .CLK(clk),
+    .SCLR(rst_n),
+    .A(mul_in_a),
+    .B(mul_in_b),
+    .P(mul_out_unsigned));
 
 always @(*) begin
     if(!rst_n) begin
-        mul_out_h = 32'b0;
-        mul_out_l = 32'b0;
+        mul_out = 32'b0;
     end
     else begin
-        mul_out_h = mul_out[63:32];
-        mul_out_l = mul_out[31:0];
+       case (op)
+        `OP_MUL: mul_out = mul_out_signed[31:0];
+        `OP_MULH: mul_out = mul_out_signed[63:32];
+        `OP_MULHU: mul_out = mul_out_unsigned[63:32];
+        default: mul_out = 32'b0;
+       endcase
     end
 end
 

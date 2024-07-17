@@ -15,13 +15,13 @@ module ex_ctrl (
 //input
         // clk,
         // rst_n,
-        // mul需要时序逻辑
         op,
         op_type,
         alu_out,
-        mul_out_h,
-        mul_out_l,
+        mul_out,
         mul_out_valid,
+        div_out,
+        div_out_valid,
         ex_access_sz,
         ex_rd_from_fwd,
         pc,
@@ -30,9 +30,10 @@ module ex_ctrl (
 input wire [7:0] op;
 input wire [2:0] op_type;
 input wire [31:0] alu_out;
-input wire [31:0] mul_out_h;
-input wire [31:0] mul_out_l;
+input wire [31:0] mul_out;
 input wire mul_out_valid;
+input wire [31:0] div_out;
+input wire div_out_valid;
 input wire [2:0] ex_access_sz;
 input wire [31:0] ex_rd_from_fwd    ;
 input wire [31:0] pc;
@@ -52,6 +53,11 @@ always @(*) begin
     case (op)
         `OP_MUL:  exe_out_valid = mul_out_valid;
         `OP_MULH:  exe_out_valid = mul_out_valid;
+        `OP_MULHU:  exe_out_valid = mul_out_valid;
+        `OP_DIV:  exe_out_valid = div_out_valid;
+        `OP_MOD:  exe_out_valid = div_out_valid;
+        `OP_DIVU:  exe_out_valid = div_out_valid;
+        `OP_MODU:  exe_out_valid = div_out_valid;
         default: exe_out_valid = 1'b1;
     endcase
 end
@@ -65,8 +71,13 @@ always @(*) begin
         `OP_LU12I:  exe_out = {u12imm,12'b0};
         `OP_PCADDU12I:  exe_out = pc + {u12imm,12'b0};
         `OP_BL:  exe_out = pc + 32'd4;
-        `OP_MUL:  exe_out = mul_out_l;
-        `OP_MULH:  exe_out = mul_out_h;
+        `OP_MUL:  exe_out = mul_out;
+        `OP_MULH:  exe_out = mul_out;
+        `OP_MULHU:  exe_out = mul_out;
+        `OP_DIV:  exe_out = div_out;
+        `OP_MOD:  exe_out = div_out;
+        `OP_DIVU:  exe_out = div_out;
+        `OP_MODU:  exe_out = div_out;
         default: exe_out = alu_out;
     endcase
     // if(op == `OP_LU12I) begin

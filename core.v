@@ -111,9 +111,10 @@ wire [31:0] id_rd_from_fwd;
 wire [31:0] ex_alu_in2;
 wire [31:0] ex_alu_out;
 wire ex_alu_zero;
-wire [31:0] ex_mul_out_h;
-wire [31:0] ex_mul_out_l;
+wire [31:0] ex_mul_out;
 wire ex_mul_out_valid;
+wire ex_div_out;
+wire ex_div_out_valid;
 // wire ex_mm_access_op;
 wire [2:0] ex_mm_access_sz;
 wire [31:0] ex_mm_addr;
@@ -371,9 +372,17 @@ mul U_mul(
             .op(id_ex.op),
             .mul_in_a(id_ex.rj_from_fwd),
             .mul_in_b(id_ex.rk_from_fwd),
-            .mul_out_h(ex_mul_out_h),
-            .mul_out_l(ex_mul_out_l),
+            .mul_out(ex_mul_out),
             .mul_out_valid(ex_mul_out_valid));
+
+div U_div(
+            .clk(clk),
+            .rst_n(rst_n),
+            .op(id_ex.op),
+            .div_in_dividend(id_ex.rj_from_fwd),
+            .div_in_divisor(id_ex.rk_from_fwd),
+            .div_out(ex_div_out),
+            .div_out_valid(ex_div_out_valid));
 
 branch U_branch(
             .branch(ex_branch),
@@ -393,9 +402,10 @@ ex_ctrl U_ex_ctrl(
             .op(id_ex.op),
             .op_type(id_ex.op_type),
             .alu_out(ex_alu_out),
-            .mul_out_h(ex_mul_out_h),
-            .mul_out_l(ex_mul_out_l),
+            .mul_out(ex_mul_out),
             .mul_out_valid(ex_mul_out_valid),
+            .div_out(ex_div_out),
+            .div_out_valid(ex_div_out_valid),
             .ex_access_sz(id_ex.access_sz),
             .ex_rd_from_fwd(id_ex.rd_from_fwd),
             .mm_access_sz(ex_mm_access_sz),
