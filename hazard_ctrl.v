@@ -22,6 +22,8 @@ module hazard_ctrl (
         pc_is_wrong,
         pc_correct,
 //input
+        ex_exe_out_valid,
+
         ex_pc,
         ex_branch,
         ex_pc_branch,
@@ -48,6 +50,8 @@ module hazard_ctrl (
         mm2_mm_load,
         wb_reg_d_wen,
         wb_reg_d);
+
+input wire ex_exe_out_valid;
 
 input wire[31:0] ex_pc;
 input wire[31:0] id_pc;
@@ -205,7 +209,27 @@ always @(*) begin
 end
 
 always @(*) begin
-    if(lau) begin
+    if(!ex_exe_out_valid) begin
+        pc_wen <= 0;
+        pc_is_wrong <= 0;
+        pc_correct <= 32'h0;
+
+        if1_if2_flush <= 0;
+        if2_id_flush <= 0;
+        id_ex_flush <= 0;
+        ex_mm1_flush <= 1;
+        mm1_mm2_flush <= 0;
+        mm2_wb_flush <= 0;
+
+        if1_if2_wen <= 0;
+        if2_id_wen <= 0;
+        id_ex_wen <= 0;
+        id_ex_bp_flush <= 0;
+        ex_mm1_wen <= 1;
+        mm1_mm2_wen <= 1;
+        mm2_wb_wen <= 1;
+    end
+    else if(lau) begin
         pc_wen <= 0;
         pc_is_wrong <= 0;
         pc_correct <= 32'h0;

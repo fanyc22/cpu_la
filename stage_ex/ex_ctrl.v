@@ -10,6 +10,7 @@ module ex_ctrl (
         mm_wdata,
         //reg_d,
         exe_out,
+        exe_out_valid,
         reg_d_wen,
 //input
         // clk,
@@ -18,6 +19,9 @@ module ex_ctrl (
         op,
         op_type,
         alu_out,
+        mul_out_h,
+        mul_out_l,
+        mul_out_valid,
         ex_access_sz,
         ex_rd_from_fwd,
         pc,
@@ -26,6 +30,9 @@ module ex_ctrl (
 input wire [7:0] op;
 input wire [2:0] op_type;
 input wire [31:0] alu_out;
+input wire [31:0] mul_out_h;
+input wire [31:0] mul_out_l;
+input wire mul_out_valid;
 input wire [2:0] ex_access_sz;
 input wire [31:0] ex_rd_from_fwd    ;
 input wire [31:0] pc;
@@ -35,28 +42,45 @@ input wire [19:0] u12imm;
 output reg [2:0] mm_access_sz;
 output reg [31:0] mm_addr;
 output reg [31:0] exe_out;
+output reg exe_out_valid;
 output reg mm_re;
 output reg mm_we;
 output reg [31:0] mm_wdata;
 output reg reg_d_wen;
 
 always @(*) begin
+    case (op)
+        `OP_MUL:  exe_out_valid = mul_out_valid;
+        `OP_MULH:  exe_out_valid = mul_out_valid;
+        default: exe_out_valid = 1'b1;
+    endcase
+end
+
+always @(*) begin
     mm_addr = alu_out;
 end
 
 always @(*) begin
-    if(op == `OP_LU12I) begin
-        exe_out = {u12imm,12'b0};
-    end
-    else if(op == `OP_PCADDU12I) begin
-        exe_out = pc + {u12imm,12'b0};
-    end
-    else if (op == `OP_BL) begin
-        exe_out = pc + 32'd4;
-    end
-    else begin
-        exe_out = alu_out;
-    end
+    case (op)
+        `OP_LU12I:  exe_out = {u12imm,12'b0};
+        `OP_PCADDU12I:  exe_out = pc + {u12imm,12'b0};
+        `OP_BL:  exe_out = pc + 32'd4;
+        `OP_MUL:  exe_out = mul_out_l;
+        `OP_MULH:  exe_out = mul_out_h;
+        default: exe_out = alu_out;
+    endcase
+    // if(op == `OP_LU12I) begin
+    //     exe_out = {u12imm,12'b0};
+    // end
+    // else if(op == `OP_PCADDU12I) begin
+    //     exe_out = pc + {u12imm,12'b0};
+    // end
+    // else if (op == `OP_BL) begin
+    //     exe_out = pc + 32'd4;
+    // end
+    // else begin
+    //     exe_out = alu_out;
+    // end
 end
 
 always @(*) begin

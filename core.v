@@ -111,10 +111,14 @@ wire [31:0] id_rd_from_fwd;
 wire [31:0] ex_alu_in2;
 wire [31:0] ex_alu_out;
 wire ex_alu_zero;
+wire [31:0] ex_mul_out_h;
+wire [31:0] ex_mul_out_l;
+wire ex_mul_out_valid;
 // wire ex_mm_access_op;
 wire [2:0] ex_mm_access_sz;
 wire [31:0] ex_mm_addr;
 wire [31:0] ex_exe_out;
+wire ex_exe_out_valid;
 wire ex_mm_re;
 wire ex_mm_we;
 wire [31:0] ex_mm_wdata;
@@ -152,6 +156,7 @@ hazard_ctrl U_hazard_ctrl(
         .fwd_src_d(fwd_src_d),
         .pc_is_wrong(pc_is_wrong),
         .pc_correct(pc_correct),
+        .ex_exe_out_valid(ex_exe_out_valid),
         .ex_pc(id_ex.pc),
         .ex_branch(ex_branch),
         .ex_pc_branch(ex_pc_branch),
@@ -360,6 +365,16 @@ alu U_alu(
             .alu_out(ex_alu_out),
             .alu_zero(ex_alu_zero));
 
+mul U_mul(
+            .clk(clk),
+            .rst_n(rst_n),
+            .op(id_ex.op),
+            .mul_in_a(id_ex.rj_from_fwd),
+            .mul_in_b(id_ex.rk_from_fwd),
+            .mul_out_h(ex_mul_out_h),
+            .mul_out_l(ex_mul_out_l),
+            .mul_out_valid(ex_mul_out_valid));
+
 branch U_branch(
             .branch(ex_branch),
             .op(id_ex.op),
@@ -378,11 +393,15 @@ ex_ctrl U_ex_ctrl(
             .op(id_ex.op),
             .op_type(id_ex.op_type),
             .alu_out(ex_alu_out),
+            .mul_out_h(ex_mul_out_h),
+            .mul_out_l(ex_mul_out_l),
+            .mul_out_valid(ex_mul_out_valid),
             .ex_access_sz(id_ex.access_sz),
             .ex_rd_from_fwd(id_ex.rd_from_fwd),
             .mm_access_sz(ex_mm_access_sz),
             .mm_addr(ex_mm_addr),
             .exe_out(ex_exe_out),
+            .exe_out_valid(ex_exe_out_valid),
             .mm_re(ex_mm_re),
             .mm_we(ex_mm_we),
             .mm_wdata(ex_mm_wdata),

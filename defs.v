@@ -98,3 +98,5 @@
 `define FWD_SRC_MM2_MEM 3'd4
 `define FWD_SRC_WB 3'd5
 `define FWD_SRC_NONE 3'd0
+
+`define MUL_CYCLES 6'd5 // real clyles needed is MUL_CYCLES+1
