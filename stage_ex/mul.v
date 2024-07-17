@@ -20,7 +20,8 @@ input wire [31:0] mul_in_b;
 output reg mul_out_valid;
 output reg [31:0] mul_out;
 
-wire mul_in_valid;
+reg mul_in_valid;
+reg sclr;
 wire [63:0] mul_out_signed;
 wire [63:0] mul_out_unsigned;
 
@@ -28,9 +29,13 @@ reg oprating;
 reg [5:0] cycle_cnt;
 
 always @(*) begin
+    sclr = ~rst_n;
+end
+
+always @(*) begin
     if(!rst_n)
         mul_in_valid = 1'b0;
-    else if(op == `OP_MUL || op == `OP_MULH)
+    else if(op == `OP_MUL || op == `OP_MULH || op == `OP_MULHU)
         mul_in_valid = 1'b1;
     else
         mul_in_valid = 1'b0;
@@ -68,16 +73,16 @@ always @(*) begin
         mul_out_valid = (cycle_cnt == `MUL_CYCLES);
 end
 
-mult_gen_0 U_mult_gen_signed (
+mult_gen_signed U_mult_gen_signed (
     .CLK(clk),
-    .SCLR(rst_n),
+    .SCLR(sclr),
     .A(mul_in_a),
     .B(mul_in_b),
     .P(mul_out_signed));
 
-mult_gen_1 U_mult_gen_unsigned (
+mult_gen_unsigned U_mult_gen_unsigned (
     .CLK(clk),
-    .SCLR(rst_n),
+    .SCLR(sclr),
     .A(mul_in_a),
     .B(mul_in_b),
     .P(mul_out_unsigned));

@@ -113,7 +113,7 @@ wire [31:0] ex_alu_out;
 wire ex_alu_zero;
 wire [31:0] ex_mul_out;
 wire ex_mul_out_valid;
-wire ex_div_out;
+wire [31:0] ex_div_out;
 wire ex_div_out_valid;
 // wire ex_mm_access_op;
 wire [2:0] ex_mm_access_sz;
