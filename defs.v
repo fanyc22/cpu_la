@@ -65,12 +65,10 @@
 
 `define OP_INVALID 8'd0
 
-`define ACCESS_SZ_BYTE 3'd7
-`define ACCESS_SZ_HALF 3'd1
-`define ACCESS_SZ_WORD 3'd2
-`define ACCESS_SZ_LEFT 3'd3
-`define ACCESS_SZ_RIGHT 3'd4
-`define ACCESS_SZ_INVALID 3'd0
+`define ACCESS_SZ_BYTE 2'b00
+`define ACCESS_SZ_HALF 2'b01
+`define ACCESS_SZ_WORD 2'b10    
+`define ACCESS_SZ_INVALID 2'b11
 
 `define BTB_NN 2'd0
 `define BTB_NB 2'd1

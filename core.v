@@ -1,4 +1,4 @@
-`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
+`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
 
 module core (
 //output
@@ -454,7 +454,7 @@ assign data_cache_we = ex_mm1.mm_we;
 assign data_cache_waddr = ex_mm1.mm_addr;
 assign data_cache_wdata = ex_mm1.mm_wdata;
 assign data_cache_access_sz = ex_mm1.mm_access_sz;
-assign mm2_rdata = data_cache_rdata;
+assign mm2_rdata = data_cache_rdata >> {mm1_mm2.mm_addr_l, 3'b000};
 assign mm2_hit = data_cache_hit;
 
 reg_mm1_mm2 mm1_mm2(
@@ -464,6 +464,7 @@ reg_mm1_mm2 mm1_mm2(
             .flush(mm1_mm2_flush),
             .mm1_exe_out(ex_mm1.exe_out),
             .mm1_mm_access_sz(ex_mm1.mm_access_sz),
+            .mm1_mm_addr_l(ex_mm1.mm_addr[1:0]),
             .mm1_mm_re(ex_mm1.mm_re),
             .mm1_reg_d(ex_mm1.reg_d),
             .mm1_op(ex_mm1.op),
@@ -481,6 +482,7 @@ reg_mm2_wb mm2_wb(
             .mm2_op(mm1_mm2.op),
             .mm2_op_type(mm1_mm2.op_type),
             .mm2_rdata(mm2_rdata),
+            .mm2_mm_access_sz(mm1_mm2.mm_access_sz),
             .mm2_reg_d_wen(mm1_mm2.reg_d_wen),
             .mm2_pc(mm1_mm2.pc));
 
@@ -489,6 +491,7 @@ regwrite U_regwrite(
             .reg_d(mm2_wb.reg_d),
             .op(mm2_wb.op),
             // .op_type(mm2_wb.op_type),
+            .wb_mm_access_sz(mm2_wb.mm_access_sz),
             .rdata(mm2_wb.rdata),
             .gr_waddr(wb_gr_waddr),
             .gr_wdata(wb_gr_wdata));

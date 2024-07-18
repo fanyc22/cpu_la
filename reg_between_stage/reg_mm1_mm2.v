@@ -1,4 +1,4 @@
-`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
+`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
 module reg_mm1_mm2 (
 //output
 
@@ -9,6 +9,7 @@ module reg_mm1_mm2 (
             wen,
             mm1_exe_out,
             mm1_mm_access_sz,
+            mm1_mm_addr_l,
             mm1_mm_re,
             mm1_reg_d,
             mm1_op,
@@ -21,7 +22,8 @@ input wire rst_n;
 input wire flush;
 input wire wen;
 input wire [31:0] mm1_exe_out;
-input wire [2:0] mm1_mm_access_sz;
+input wire [1:0] mm1_mm_access_sz;
+input wire [1:0] mm1_mm_addr_l;
 input wire mm1_mm_re;
 input wire [4:0] mm1_reg_d;
 input wire [7:0] mm1_op;
@@ -30,7 +32,8 @@ input wire mm1_reg_d_wen;
 input wire [31:0] mm1_pc;
 
 reg [31:0] exe_out;
-reg [2:0] mm_access_sz;
+reg [1:0] mm_access_sz;
+reg [1:0] mm_addr_l;
 reg mm_re;
 reg [4:0] reg_d;
 reg [7:0] op;
@@ -42,6 +45,7 @@ always @(posedge clk ) begin
     if(!rst_n) begin
         exe_out <= 32'b0;
         mm_access_sz <= 3'b0;
+        mm_addr_l <= 2'b0;
         mm_re <= 1'b0;
         reg_d <= 5'b0;
         op <= 8'b0;
@@ -52,6 +56,7 @@ always @(posedge clk ) begin
     else if(wen) begin
         exe_out <= mm1_exe_out;
         mm_access_sz <= mm1_mm_access_sz;
+        mm_addr_l <= mm1_mm_addr_l;
         mm_re <= mm1_mm_re;
         reg_d <= mm1_reg_d;
         op <= mm1_op;

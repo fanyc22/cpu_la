@@ -1,4 +1,4 @@
-`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
+`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
 module pc(/*autoport*/
 //output
       pc_reg,

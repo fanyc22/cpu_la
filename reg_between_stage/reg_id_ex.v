@@ -1,4 +1,4 @@
-`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
+`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
 module reg_id_ex (
 //output
 
@@ -51,7 +51,7 @@ input wire [14:0] id_bns_code;
 input wire [4:0] id_shift_imm;
 input wire [19:0] id_u12imm;
 input wire id_flag_unsigned;
-input wire [2:0] id_access_sz;
+input wire [1:0] id_access_sz;
 input wire id_is_branch;
 input wire [13:0] id_csr;
 input wire id_branch_bp;
@@ -74,7 +74,7 @@ reg [14:0] bns_code;
 reg [4:0] shift_imm;
 reg [19:0] u12imm;
 reg flag_unsigned;
-reg [2:0] access_sz;
+reg [1:0] access_sz;
 reg is_branch;
 reg [13:0] csr;
 reg branch_bp;

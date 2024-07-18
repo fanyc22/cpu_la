@@ -1,4 +1,4 @@
-`include "C:\\Users\\41229\\Desktop\\cdp_ede_local-master\\mycpu_env\\myCPU\\defs.v"
+`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
 module reg_ex_mm1 (
 //output
 
@@ -24,7 +24,7 @@ input wire rst_n;
 input wire flush;
 input wire wen;
 input wire [31:0] ex_exe_out;
-input wire [2:0] ex_mm_access_sz;
+input wire [1:0] ex_mm_access_sz;
 input wire [31:0] ex_mm_addr;
 input wire ex_mm_re;
 input wire ex_mm_we;
@@ -36,7 +36,7 @@ input wire ex_reg_d_wen;
 input wire [31:0] ex_pc;
 
 reg [31:0] exe_out;
-reg [2:0] mm_access_sz;
+reg [1:0] mm_access_sz;
 reg [31:0] mm_addr;
 reg mm_re;
 reg mm_we;
