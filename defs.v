@@ -1,11 +1,13 @@
-`define OP_TYPE_3R 3'd7
-`define OP_TYPE_2RI12 3'd1
-`define OP_TYPE_BJ 3'd2
-`define OP_TYPE_ATOMIC 3'd3
-`define OP_TYPE_CSR 3'd4
-`define OP_TYPE_U12I 3'd5
+`define OP_TYPE_3R 4'd15
+`define OP_TYPE_2RI12 4'd1
+`define OP_TYPE_BJ 4'd2
+`define OP_TYPE_ATOMIC 4'd3
+`define OP_TYPE_CSR 4'd4
+`define OP_TYPE_U12I 4'd5
+`define OP_TYPE_RDCNT 4'd6
+`define OP_TYPE_ETRN 4'd8
 
-`define OP_TYPE_INVALID 3'd0
+`define OP_TYPE_INVALID 4'd0
 
 //3r
 `define OP_ADD 8'd63
@@ -62,6 +64,11 @@
 //u12i
 `define OP_LU12I 8'd33
 `define OP_PCADDU12I 8'd34
+//rdcnt
+`define OP_RDCNT 8'd49
+`define OP_RDCNTH 8'd50
+//etrn
+`define OP_ETRN 8'd51
 
 `define OP_INVALID 8'd0
 
@@ -99,3 +106,64 @@
 
 `define MUL_CYCLES 6'd5 // real clyles needed is MUL_CYCLES+1
 `define DIV_CYCLES 6'd20 // real clyles needed is MUL_CYCLES+1
+
+`define CSR_CRMD_PLV    1 :0
+`define CSR_CRMD_IE     2
+`define CSR_PRMD_PPLV   1 :0
+`define CSR_PRMD_PIE    2
+`define CSR_ECFG_LIE    12:0
+`define CSR_ECFG_LIE90  9 :0
+`define CSR_ESTAT_IS10  1 :0
+`define CSR_ESTAT_IS    9 :0
+`define CSR_ERA_PC      31:0
+`define CSR_EENTRY_VADDR   31:6
+`define CSR_SAVE_DATA   31:0
+`define CSR_TID_TID     31:0
+`define CSR_TCFG_EN     0
+`define CSR_TCFG_PERIOD 1
+`define CSR_TCFG_INITV  31:2
+`define CSR_TICLR_CLR   0
+
+`define CSR_CRMD   14'h00
+`define CSR_PRMD   14'h01
+`define CSR_EUEN   14'h02
+`define CSR_ECFG   14'h04
+`define CSR_ESTAT  14'h05
+`define CSR_ERA    14'h06
+`define CSR_BADV   14'h07
+`define CSR_EENTRY 14'h0c
+`define CSR_TLBIDX 14'h10
+`define CSR_TLBHI  14'h11
+`define CSR_TLBLO0 14'h12
+`define CSR_TLBLO1 14'h13
+`define CSR_ASID   14'h18
+`define CSR_PGDL   14'h19
+`define CSR_PGDH   14'h1a
+`define CSR_PGD    14'h1b
+`define CSR_CPUID  14'h20
+`define CSR_SAVE0  14'h30
+`define CSR_SAVE1  14'h31
+`define CSR_SAVE2  14'h32
+`define CSR_SAVE3  14'h33
+`define CSR_TID    14'h40
+`define CSR_TCFG   14'h41
+`define CSR_TVAL   14'h42
+`define CSR_TICLR  14'h44
+`define CSR_LLBCTL 14'h60
+`define CSR_TLBRENTRY 14'h88
+`define CSR_CTAG   14'h98
+`define CSR_DMW0   14'h180
+`define CSR_DMW1   14'h181
+
+
+`define ECODE_INT       6'h00
+`define ECODE_ADE       6'h08   // ADEM: esubcode=1; ADEF: esubcode=0
+`define ECODE_ALE       6'h09   
+`define ECODE_SYS       6'h0B
+`define ECODE_BRK       6'h0C   
+`define ECODE_INE       6'h0D
+`define ECODE_TLBR      6'h3F
+
+`define ESUBCODE_ADEF   9'b00
+
+`define CSR_REG_SIZE 64

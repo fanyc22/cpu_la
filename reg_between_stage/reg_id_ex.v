@@ -25,7 +25,7 @@ module reg_id_ex (
             id_flag_unsigned,
             id_access_sz,
             id_is_branch,
-            id_csr,
+            id_csr_addr,
             id_branch_bp,
             id_reg_j_ren,
             id_reg_k_ren,
@@ -44,7 +44,7 @@ input wire [4:0] id_reg_d;
 input wire [4:0] id_reg_j;
 input wire [4:0] id_reg_k;
 input wire [7:0] id_op;
-input wire [2:0] id_op_type;
+input wire [3:0] id_op_type;
 input wire [25:0] id_imm;
 input wire [2:0] id_imm_sz;
 input wire [14:0] id_bns_code;
@@ -53,7 +53,7 @@ input wire [19:0] id_u12imm;
 input wire id_flag_unsigned;
 input wire [1:0] id_access_sz;
 input wire id_is_branch;
-input wire [13:0] id_csr;
+input wire [13:0] id_csr_addr;
 input wire id_branch_bp;
 input wire id_reg_j_ren;
 input wire id_reg_k_ren;
@@ -67,7 +67,7 @@ reg [4:0] reg_d;
 reg [4:0] reg_j;
 reg [4:0] reg_k;
 reg [7:0] op;
-reg [2:0] op_type;
+reg [3:0] op_type;
 reg [25:0] imm;
 reg [2:0] imm_sz;
 reg [14:0] bns_code;
@@ -76,7 +76,7 @@ reg [19:0] u12imm;
 reg flag_unsigned;
 reg [1:0] access_sz;
 reg is_branch;
-reg [13:0] csr;
+reg [13:0] csr_addr;
 reg branch_bp;
 reg reg_j_ren;
 reg reg_k_ren;
@@ -101,7 +101,7 @@ always @(posedge clk ) begin
         flag_unsigned <= 1'b0;
         access_sz <= 3'b0;
         is_branch <= 1'b0;
-        csr <= 14'b0;
+        csr_addr <= 14'b0;
         branch_bp <= 1'b0;
         reg_j_ren <= 1'b0;
         reg_k_ren <= 1'b0;
@@ -125,7 +125,7 @@ always @(posedge clk ) begin
         flag_unsigned <= flush ? 1'b0 : id_flag_unsigned;
         access_sz <= flush ? 3'b0 : id_access_sz;
         is_branch <= flush ? 1'b0 : id_is_branch;
-        csr <= flush ? 14'b0 : id_csr;
+        csr_addr <= flush ? 14'b0 : id_csr_addr;
         branch_bp <= flush ? 1'b0 : (bp_flush? 0 : id_branch_bp);
         reg_j_ren <= flush ? 1'b0 : id_reg_j_ren;
         reg_k_ren <= flush ? 1'b0 : id_reg_k_ren;

@@ -3,6 +3,10 @@
 
 module decoder (
 //output
+            id_sys,
+            id_brk,
+            id_ine,
+            id_ecode,
             reg_d,
             reg_j,
             reg_k,
@@ -16,7 +20,7 @@ module decoder (
             flag_unsigned,
             access_sz,
             is_branch,
-            csr,
+            csr_addr,
             reg_j_ren,
             reg_k_ren,
             reg_d_ren,
@@ -25,11 +29,15 @@ module decoder (
 
 input wire [31:0] inst;
 
+output reg id_sys;
+output reg id_brk;
+output reg id_ine;
+output reg [14:0] id_ecode;
 output reg [4:0] reg_d;
 output reg [4:0] reg_j;
 output reg [4:0] reg_k;
 output reg [7:0] op;
-output reg [2:0] op_type;
+output reg [3:0] op_type;
 output reg [25:0] imm;
 output reg [2:0] imm_sz;
 output reg flag_unsigned;
@@ -38,7 +46,7 @@ output reg is_branch;
 output reg [14:0] bns_code;
 output reg [4:0] shift_imm;
 output reg [19:0] u12imm;
-output reg [13:0] csr;
+output reg [13:0] csr_addr;
 output reg reg_j_ren;
 output reg reg_k_ren;
 output reg reg_d_ren;
@@ -49,6 +57,8 @@ wire [7:0] op_bj;
 wire [7:0] op_atomic;
 wire [7:0] op_csr;
 wire [7:0] op_u12i;
+wire [7:0] op_rdcnt;
+wire [7:0] op_etrn;
 
 always@(*) begin
     reg_d <= inst[4:0];
@@ -104,6 +114,18 @@ decoder_u12i U_decoder_u12i(
             .op(op_u12i)
 );
 
+decoder_rdcnt U_decoder_rdcnt(
+            .inst(inst),
+            .op(op_rdcnt)
+);
+
+always @(*) begin
+    if(inst == 32'b00000110_01001000_00111000_00000000)
+        op_etrn = `OP_ETRN;
+    else
+        op_etrn = `OP_INVALID;
+end
+
 always @(*) begin
     if(op_2ri12 != `OP_INVALID) begin
         op_type = `OP_TYPE_2RI12;
@@ -123,6 +145,12 @@ always @(*) begin
     else if(op_u12i != `OP_INVALID) begin
         op_type = `OP_TYPE_U12I;
     end
+    else if(op_rdcnt != `OP_INVALID) begin
+        op_type = `OP_TYPE_RDCNT;
+    end
+    else if(op_etrn != `OP_INVALID) begin
+        op_type = `OP_TYPE_ETRN;
+    end
     else begin
         op_type = `OP_TYPE_INVALID;
     end
@@ -136,6 +164,8 @@ always @(*) begin
         `OP_TYPE_ATOMIC: op = op_atomic;
         `OP_TYPE_CSR: op = op_csr;
         `OP_TYPE_U12I: op = op_u12i;
+        `OP_TYPE_RDCNT: op = op_rdcnt;
+        `OP_TYPE_ETRN: op = op_etrn;
         default: op = `OP_INVALID;
     endcase
 end
@@ -145,7 +175,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    csr = inst[23:10];
+    csr_addr = inst[23:10];
 end
 
 always @(*) begin
@@ -183,6 +213,13 @@ always @(*) begin
     reg_d_ren = (op_type == `OP_TYPE_CSR && op != `OP_CSRRD) ||
                 (op_type == `OP_TYPE_2RI12 && op == `OP_ST) ||
                 (op_type == `OP_TYPE_BJ && op != `OP_JIRL && op != `OP_B && op != `OP_BL);
+end
+
+always @(*) begin
+    id_sys <= (inst[32:15] == 17'b00000000001010100);
+    id_brk <= (inst[32:15] == 17'b00000000001010110);
+    id_ecode <= inst[14:0];
+    id_ine <= (op_type == `OP_TYPE_INVALID);
 end
 
 endmodule

@@ -91,7 +91,7 @@ wire [4:0] id_reg_d;
 wire [4:0] id_reg_j;
 wire [4:0] id_reg_k;
 wire [7:0] id_op;
-wire [2:0] id_op_type;
+wire [3:0] id_op_type;
 wire [25:0] id_imm;
 wire [2:0] id_imm_sz;
 wire [14:0] id_bns_code;
@@ -100,7 +100,7 @@ wire [19:0] id_u12imm;
 wire id_flag_unsigned;
 wire [2:0] id_access_sz;
 wire id_is_branch;
-wire [13:0] id_csr;
+wire [13:0] id_csr_addr;
 wire id_reg_j_ren;
 wire id_reg_k_ren;
 wire id_reg_d_ren;
@@ -285,7 +285,7 @@ decoder U_decoder(
             .access_sz(id_access_sz),
             .is_branch(id_is_branch),
             .inst(if2_id.inst),
-            .csr(id_csr),
+            .csr_addr(id_csr_addr),
             .reg_j_ren(id_reg_j_ren),
             .reg_k_ren(id_reg_k_ren),
             .reg_d_ren(id_reg_d_ren));
@@ -343,7 +343,7 @@ reg_id_ex id_ex(
             .id_flag_unsigned(id_flag_unsigned),
             .id_access_sz(id_access_sz),
             .id_is_branch(id_is_branch),
-            .id_csr(id_csr),
+            .id_csr_addr(id_csr_addr),
             .id_branch_bp(if2_id.branch_bp),
             .id_reg_j_ren(id_reg_j_ren),
             .id_reg_k_ren(id_reg_k_ren),
@@ -423,6 +423,9 @@ reg_ex_mm1 ex_mm1(
             .clk(clk),
             .rst_n(rst_n),
             .wen(ex_mm1_wen),
+            .ex_csr_wdata(id_ex.id_rd_from_fwd),
+            .ex_csr_wmask(id_ex.id_rj_from_fwd),
+            .ex_csr_addr(id_ex.csr_addr),
             .flush(ex_mm1_flush),
             .ex_exe_out(ex_exe_out),
             .ex_mm_access_sz(ex_mm_access_sz),
@@ -462,6 +465,9 @@ reg_mm1_mm2 mm1_mm2(
             .rst_n(rst_n),
             .wen(mm1_mm2_wen),
             .flush(mm1_mm2_flush),
+            .mm1_csr_wdata(ex_mm1.csr_wdata),
+            .mm1_csr_wmask(ex_mm1.csr_wmask),
+            .mm1_csr_addr(ex_mm1.csr_addr),
             .mm1_exe_out(ex_mm1.exe_out),
             .mm1_mm_access_sz(ex_mm1.mm_access_sz),
             .mm1_mm_addr_l(ex_mm1.mm_addr[1:0]),
@@ -476,6 +482,9 @@ reg_mm2_wb mm2_wb(
             .clk(clk),
             .rst_n(rst_n),
             .wen(mm2_wb_wen),
+            .mm2_csr_wdata(mm1_mm2.csr_wdata),
+            .mm2_csr_wmask(mm1_mm2.csr_wmask),
+            .mm2_csr_addr(mm1_mm2.csr_addr),
             .flush(mm2_wb_flush),
             .mm2_exe_out(mm1_mm2.exe_out),
             .mm2_reg_d(mm1_mm2.reg_d),

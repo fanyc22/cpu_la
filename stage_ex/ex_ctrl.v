@@ -3,6 +3,7 @@
 module ex_ctrl (
 //output
         // mm_access_op,
+        ex_ale,
         mm_access_sz,
         mm_re,
         mm_we,
@@ -28,7 +29,7 @@ module ex_ctrl (
         u12imm);
 
 input wire [7:0] op;
-input wire [2:0] op_type;
+input wire [3:0] op_type;
 input wire [31:0] alu_out;
 input wire [31:0] mul_out;
 input wire mul_out_valid;
@@ -40,6 +41,7 @@ input wire [31:0] pc;
 input wire [19:0] u12imm;
 
 // output reg [2:0] mm_access_op;
+output reg ex_ale;
 output reg [2:0] mm_access_sz;
 output reg [31:0] mm_addr;
 output reg [31:0] exe_out;
@@ -117,6 +119,19 @@ always @(*) begin
             (op_type == `OP_TYPE_ATOMIC && (op == `OP_LL)) ||
             (op_type == `OP_TYPE_CSR) ||
             (op_type == `OP_TYPE_U12I);
+end
+
+always @(*) begin
+    if(mm_re||mm_we) begin
+        case (mm_access_sz)
+            `ACCESS_SZ_WORD: ex_ale = &  mm_addr[1:0];
+            `ACCESS_SZ_HALF: ex_ale = mm_addr[0];
+            default: ex_ale = 1'b0;
+        endcase
+    end
+    else begin
+        ex_ale = 1'b0;
+    end
 end
     
 endmodule

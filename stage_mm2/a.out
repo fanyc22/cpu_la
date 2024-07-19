@@ -1,0 +1,35 @@
+#! /opt/homebrew/Cellar/icarus-verilog/12.0/bin/vvp
+:ivl_version "12.0 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/system.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2005_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/va_math.vpi";
+S_0x1250050d0 .scope module, "csr_strl" "csr_strl" 2 1;
+ .timescale 0 0;
+    .port_info 0 /OUTPUT 1 "csr_re";
+    .port_info 1 /OUTPUT 14 "csr_addr";
+    .port_info 2 /OUTPUT 1 "csr_we";
+    .port_info 3 /OUTPUT 32 "csr_wmask";
+    .port_info 4 /OUTPUT 32 "csr_wvalue";
+    .port_info 5 /INPUT 3 "op";
+    .port_info 6 /INPUT 1 "exception";
+    .port_info 7 /INPUT 6 "ecode";
+v0x125005300_0 .var "csr_addr", 13 0;
+v0x123e09a40_0 .var "csr_re", 0 0;
+v0x123e09af0_0 .var "csr_we", 0 0;
+v0x123e09ba0_0 .var "csr_wmask", 31 0;
+v0x123e09c50_0 .var "csr_wvalue", 31 0;
+o0x128040100 .functor BUFZ 6, C4<zzzzzz>; HiZ drive
+v0x123e09d40_0 .net "ecode", 5 0, o0x128040100;  0 drivers
+o0x128040130 .functor BUFZ 1, C4<z>; HiZ drive
+v0x123e09df0_0 .net "exception", 0 0, o0x128040130;  0 drivers
+o0x128040160 .functor BUFZ 3, C4<zzz>; HiZ drive
+v0x123e09e90_0 .net "op", 2 0, o0x128040160;  0 drivers
+# The file index is used to find the file name in the following table.
+:file_names 3;
+    "N/A";
+    "<interactive>";
+    "/Users/fanyuchen/Desktop/la/myCPU/stage_mm2/csr_ctrl.v";

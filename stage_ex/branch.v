@@ -9,7 +9,7 @@ module branch (
             rd);
     
 input wire [7:0] op;
-input wire [2:0] op_type;
+input wire [3:0] op_type;
 input wire [31:0] rj;
 input wire [31:0] rd;
 

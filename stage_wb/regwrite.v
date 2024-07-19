@@ -14,7 +14,7 @@ module regwrite (
 input wire[31:0] exe_out;
 input wire[4:0] reg_d;
 input wire[7:0] op;
-// input wire[2:0] op_type;
+// input wire[3:0] op_type;
 input wire[1:0] wb_mm_access_sz;
 input wire[31:0] rdata;
 

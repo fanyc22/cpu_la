@@ -13,7 +13,7 @@ module alu_in2_mux (
     flag_unsigned);
 
 input wire [7:0] op;
-input wire [2:0] op_type;
+input wire [3:0] op_type;
 input wire [31:0] rk_from_fwd;
 input wire [25:0] imm_unext;
 input wire [2:0] imm_sz;
