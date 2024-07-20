@@ -5,12 +5,16 @@ module regwrite (
         gr_wdata,
 //input
         exe_out,
+        csr_timer,
+        csr_timer_id,
         reg_d,
         op,
         // op_type,
         wb_mm_access_sz,
         rdata);
 
+input wire[63:0] csr_timer;
+input wire[31:0] csr_timer_id;
 input wire[31:0] exe_out;
 input wire[4:0] reg_d;
 input wire[7:0] op;
@@ -41,6 +45,15 @@ always @(*) begin
     end
     else if(op == `OP_LL) begin
         gr_wdata = rdata;
+    end
+    else if(op == `OP_RDCNTVL) begin
+        gr_wdata = csr_timer[31:0];
+    end
+    else if(op == `OP_RDCNTID) begin
+        gr_wdata = csr_timer_id;
+    end
+    else if(op == `OP_RDCNTVH) begin
+        gr_wdata = csr_timer[63:32];
     end
     else begin
         gr_wdata = exe_out;

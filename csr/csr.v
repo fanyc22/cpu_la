@@ -4,7 +4,9 @@ module csr (
             csr_rdata,
             exception_entry,
             exception_return_entry,
-            interruption,
+            interrupt,
+            timer,
+            timer_id,
 //input
             clk,
             rst_n,
@@ -36,6 +38,8 @@ output reg [31:0] csr_rdata;
 output reg [31:0] exception_entry;
 output reg [31:0] exception_return_entry;
 output reg interruption;
+output reg [63:0] timer;
+output reg [31:0] timer_id;
 
 reg [31:0] csr_reg[`CSR_REG_SIZE -1 :0];
 reg [63:0] stable_counter;
@@ -87,7 +91,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    interruption = (&(csr_reg[`CSR_ESTAT][`CSR_ESTAT_IS] & csr_reg[`CSR_ECFG][`CSR_ECFG_LIE90])) && (csr_reg[`CSR_CRMD][`CSR_CRMD_IE]);
+    interrupt = (&(csr_reg[`CSR_ESTAT][`CSR_ESTAT_IS] & csr_reg[`CSR_ECFG][`CSR_ECFG_LIE90])) && (csr_reg[`CSR_CRMD][`CSR_CRMD_IE]);
 end
 
 always @(posedge clk) begin
@@ -102,6 +106,11 @@ always @(posedge clk) begin
             csr_reg[`CSR_TVAL] <= csr_reg[`CSR_TVAL] - 1;
         end
     end
+end
+
+always @(*) begin
+    timer_id <= csr_reg[`CSR_TID];
+    timer <= stable_counter;
 end
     
 endmodule

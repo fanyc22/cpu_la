@@ -32,7 +32,7 @@ input wire [31:0] inst;
 output reg id_sys;
 output reg id_brk;
 output reg id_ine;
-output reg [14:0] id_ecode;
+output reg [14:0] id_sbcode;
 output reg [4:0] reg_d;
 output reg [4:0] reg_j;
 output reg [4:0] reg_k;
@@ -218,7 +218,7 @@ end
 always @(*) begin
     id_sys <= (inst[32:15] == 17'b00000000001010100);
     id_brk <= (inst[32:15] == 17'b00000000001010110);
-    id_ecode <= inst[14:0];
+    id_sbcode <= inst[14:0];
     id_ine <= (op_type == `OP_TYPE_INVALID);
 end
 

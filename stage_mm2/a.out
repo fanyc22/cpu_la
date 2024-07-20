@@ -7,27 +7,37 @@
 :vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_textio.vpi";
 :vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2005_math.vpi";
 :vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/va_math.vpi";
-S_0x1250050d0 .scope module, "csr_strl" "csr_strl" 2 1;
+S_0x11f804b80 .scope module, "csr_strl" "csr_strl" 2 1;
  .timescale 0 0;
-    .port_info 0 /OUTPUT 1 "csr_re";
-    .port_info 1 /OUTPUT 14 "csr_addr";
-    .port_info 2 /OUTPUT 1 "csr_we";
-    .port_info 3 /OUTPUT 32 "csr_wmask";
-    .port_info 4 /OUTPUT 32 "csr_wvalue";
-    .port_info 5 /INPUT 3 "op";
-    .port_info 6 /INPUT 1 "exception";
-    .port_info 7 /INPUT 6 "ecode";
-v0x125005300_0 .var "csr_addr", 13 0;
-v0x123e09a40_0 .var "csr_re", 0 0;
-v0x123e09af0_0 .var "csr_we", 0 0;
-v0x123e09ba0_0 .var "csr_wmask", 31 0;
-v0x123e09c50_0 .var "csr_wvalue", 31 0;
-o0x128040100 .functor BUFZ 6, C4<zzzzzz>; HiZ drive
-v0x123e09d40_0 .net "ecode", 5 0, o0x128040100;  0 drivers
-o0x128040130 .functor BUFZ 1, C4<z>; HiZ drive
-v0x123e09df0_0 .net "exception", 0 0, o0x128040130;  0 drivers
-o0x128040160 .functor BUFZ 3, C4<zzz>; HiZ drive
-v0x123e09e90_0 .net "op", 2 0, o0x128040160;  0 drivers
+    .port_info 0 /OUTPUT 1 "mm2_csr_re";
+    .port_info 1 /OUTPUT 1 "mm2_csr_we";
+    .port_info 2 /OUTPUT 6 "mm2_ecode";
+    .port_info 3 /OUTPUT 9 "mm2_esubcode";
+    .port_info 4 /INPUT 8 "op";
+    .port_info 5 /INPUT 1 "mm2_adef";
+    .port_info 6 /INPUT 1 "mm2_sys";
+    .port_info 7 /INPUT 1 "mm2_brk";
+    .port_info 8 /INPUT 1 "mm2_ine";
+    .port_info 9 /INPUT 1 "mm2_ale";
+    .port_info 10 /INPUT 1 "mm2_interrupt";
+o0x120040010 .functor BUFZ 1, C4<z>; HiZ drive
+v0x11f807960_0 .net "mm2_adef", 0 0, o0x120040010;  0 drivers
+o0x120040040 .functor BUFZ 1, C4<z>; HiZ drive
+v0x11f817670_0 .net "mm2_ale", 0 0, o0x120040040;  0 drivers
+o0x120040070 .functor BUFZ 1, C4<z>; HiZ drive
+v0x11f817710_0 .net "mm2_brk", 0 0, o0x120040070;  0 drivers
+v0x11f8177a0_0 .var "mm2_csr_re", 0 0;
+v0x11f817840_0 .var "mm2_csr_we", 0 0;
+v0x11f817920_0 .var "mm2_ecode", 5 0;
+v0x11f8179d0_0 .var "mm2_esubcode", 8 0;
+o0x120040160 .functor BUFZ 1, C4<z>; HiZ drive
+v0x11f817a80_0 .net "mm2_ine", 0 0, o0x120040160;  0 drivers
+o0x120040190 .functor BUFZ 1, C4<z>; HiZ drive
+v0x11f817b20_0 .net "mm2_interrupt", 0 0, o0x120040190;  0 drivers
+o0x1200401c0 .functor BUFZ 1, C4<z>; HiZ drive
+v0x11f817c30_0 .net "mm2_sys", 0 0, o0x1200401c0;  0 drivers
+o0x1200401f0 .functor BUFZ 8, C4<zzzzzzzz>; HiZ drive
+v0x11f817cc0_0 .net "op", 7 0, o0x1200401f0;  0 drivers
 # The file index is used to find the file name in the following table.
 :file_names 3;
     "N/A";

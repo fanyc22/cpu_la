@@ -13,8 +13,8 @@ always @(*) begin
         op = `OP_INVALID;
     else begin
         case (inst[14:10])
-            5'b11000: op = `OP_RDCNT;
-            5'b11001: op = `OP_RDCNTH;
+            5'b11000: op = (inst[9:5] == 5'b00000) ? `OP_RDCNTVL : `OP_RDCNTID;
+            5'b11001: op = `OP_RDCNTVH;
             default: op = `OP_INVALID;
         endcase
     end

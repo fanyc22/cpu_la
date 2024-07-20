@@ -4,6 +4,7 @@ module ex_ctrl (
 //output
         // mm_access_op,
         ex_ale,
+        ex_etrn,
         mm_access_sz,
         mm_re,
         mm_we,
@@ -42,6 +43,7 @@ input wire [19:0] u12imm;
 
 // output reg [2:0] mm_access_op;
 output reg ex_ale;
+output reg ex_etrn;
 output reg [2:0] mm_access_sz;
 output reg [31:0] mm_addr;
 output reg [31:0] exe_out;
@@ -50,6 +52,10 @@ output reg mm_re;
 output reg mm_we;
 output reg [31:0] mm_wdata;
 output reg reg_d_wen;
+
+always @(*) begin
+    ex_etrn = op == `OP_ETRN;
+end
 
 always @(*) begin
     case (op)
@@ -118,7 +124,8 @@ always @(*) begin
             (op_type == `OP_TYPE_BJ && (op == `OP_JIRL || op == `OP_BL)) ||
             (op_type == `OP_TYPE_ATOMIC && (op == `OP_LL)) ||
             (op_type == `OP_TYPE_CSR) ||
-            (op_type == `OP_TYPE_U12I);
+            (op_type == `OP_TYPE_U12I)||
+            (op_type == `OP_TYPE_RDCNT);
 end
 
 always @(*) begin

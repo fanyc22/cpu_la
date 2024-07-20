@@ -8,6 +8,11 @@ module reg_id_ex (
             wen,
             flush,
             bp_flush,
+            id_adef,
+            id_sys,
+            id_brk,
+            id_ine,
+            id_sbcode,
             id_pc,
             id_rj_from_fwd,
             id_rk_from_fwd,
@@ -36,6 +41,11 @@ input wire rst_n;
 input wire wen;
 input wire flush;
 input wire bp_flush;
+input wire id_adef;
+input wire id_sys;
+input wire id_brk;
+input wire id_ine;
+input wire [14:0] id_sbcode;
 input wire [31:0] id_pc;
 input wire [31:0] id_rj_from_fwd;
 input wire [31:0] id_rk_from_fwd;
@@ -59,6 +69,11 @@ input wire id_reg_j_ren;
 input wire id_reg_k_ren;
 input wire id_reg_d_ren;
 
+reg adef;
+reg sys;
+reg brk;
+reg ine;
+reg [14:0] sbcode;
 reg [31:0] pc;
 reg [31:0] rj_from_fwd;
 reg [31:0] rk_from_fwd;
@@ -84,6 +99,11 @@ reg reg_d_ren;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
+        adef <= 1'b0;
+        sys <= 1'b0;
+        brk <= 1'b0;
+        ine <= 1'b0;    
+        sbcode <= 15'b0;
         pc <= 32'b0;
         rj_from_fwd <= 32'b0;
         rk_from_fwd <= 32'b0;
@@ -108,6 +128,11 @@ always @(posedge clk ) begin
         reg_d_ren <= 1'b0;
     end
     else if(wen) begin
+        adef <= flush ? 0 : id_adef;
+        sys <= flush ? 0 : id_sys;
+        brk <= flush ? 0 : id_brk;
+        ine <= flush ? 0 : id_ine;
+        sbcode <= flush ? 15'b0 : id_sbcode;
         pc <= flush ? 0 : id_pc;
         rj_from_fwd <= flush ? 0 : id_rj_from_fwd;
         rk_from_fwd <= flush ? 0 : id_rk_from_fwd;

@@ -65,10 +65,11 @@
 `define OP_LU12I 8'd33
 `define OP_PCADDU12I 8'd34
 //rdcnt
-`define OP_RDCNT 8'd49
-`define OP_RDCNTH 8'd50
+`define OP_RDCNTID 8'd49
+`define OP_RDCNTVL 8'd50
+`define OP_RDCNTVH 8'd51
 //etrn
-`define OP_ETRN 8'd51
+`define OP_ETRN 8'd52
 
 `define OP_INVALID 8'd0
 

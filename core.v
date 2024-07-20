@@ -8,7 +8,7 @@ module core (
             inst_cache_waddr,
             inst_cache_wdata,
             inst_cache_access_sz,
-               
+ 
             data_cache_re,
             data_cache_raddr,
             data_cache_we,
@@ -77,6 +77,7 @@ wire mm1_mm2_wen;
 wire mm2_wb_wen;
 
 wire [31:0] if1_pc;
+wire if1_adef;
 wire if1_icache_re;
 wire if1_branch_taken;
 wire [31:0] if1_branch_address;
@@ -84,6 +85,10 @@ wire [31:0] if1_branch_address;
 wire [31:0] if2_inst;
 wire if2_icache_hit;
 
+wire id_sys,
+wire id_brk,
+wire id_ine,
+wire [14:0] id_sbcode;
 wire [31:0] id_rj_from_gr;
 wire [31:0] id_rk_from_gr;
 wire [31:0] id_rd_from_gr;
@@ -126,12 +131,29 @@ wire [31:0] ex_mm_wdata;
 wire ex_branch;
 wire [31:0] ex_pc_branch;
 wire ex_reg_d_wen;
+wire [4:0] ex_reg_d;
+wire [31:0] ex_csr_wmask;
+wire ex_flush_before;
+wire ex_interrupt;
+wire ex_etrn;
+wire ex_ale;
 
 wire [31:0] mm2_rdata;
 wire mm2_hit;
+wire mm2_csr_we;
+wire [5:0] mm2_ecode;
+wire [8:0] mm2_esubcode;
 
 wire [4:0] wb_gr_waddr;
 wire [31:0] wb_gr_wdata;
+wire [31:0] wb_csr_rdata;
+wire wb_exception;
+wire [31:0] wb_exception_entry;
+wire [31:0] wb_exception_return_entry;
+wire [31:0] wb_entry;
+
+wire [63:0] csr_timer;
+wire [31:0] csr_timer_id;
 
 wire [2:0] fwd_src_j;
 wire [2:0] fwd_src_k;
@@ -157,6 +179,11 @@ hazard_ctrl U_hazard_ctrl(
         .fwd_src_d(fwd_src_d),
         .pc_is_wrong(pc_is_wrong),
         .pc_correct(pc_correct),
+        .ex_flush_before(ex_flush_before),
+        .mm1_flush_before(ex_mm1.flush_before),
+        .mm2_flush_before(mm1_mm2.flush_before),
+        .wb_flush_before(mm2_wb.flush_before),
+        .wb_entry(wb_entry),
         .ex_exe_out_valid(ex_exe_out_valid),
         .ex_pc(id_ex.pc),
         .ex_branch(ex_branch),
@@ -190,6 +217,7 @@ pc U_pc(
          .pc_wen(pc_wen),
          .pc_is_wrong(pc_is_wrong),
          .pc_correct(pc_correct),
+         .if1_adef(if1_adef),
          .is_branch(if1_branch_taken),
          .branch_address(if1_branch_address),
          .icache_re(if1_icache_re));
@@ -225,6 +253,7 @@ reg_if1_if2 if1_if2(
             .rst_n(rst_n),
             .wen(if1_if2_wen),
             .flush(if1_if2_flush),
+            .if1_adef(if1_adef),
             .if1_pc(if1_pc),
             .if1_branch_bp(if1_branch_taken));
 
@@ -246,6 +275,7 @@ reg_if2_id if2_id(
             .rst_n(rst_n),
             .wen(if2_id_wen),
             .flush(if2_id_flush),
+            .if2_adef(if1_if2.adef),
             .if2_pc(if1_if2.pc),
             .if2_inst(if2_inst),
             .if2_icache_hit(if2_icache_hit),
@@ -271,6 +301,10 @@ assign debug_wb_rf_wnum = wb_gr_waddr;
 assign debug_wb_rf_wdata = wb_gr_wdata;
 
 decoder U_decoder(
+            .id_sys(id_sys),
+            .id_brk(id_brk),
+            .id_ine(id_ine),
+            .id_sbcode(id_sbcode),
             .reg_d(id_reg_d),
             .reg_j(id_reg_j),
             .reg_k(id_reg_k),
@@ -326,6 +360,11 @@ reg_id_ex id_ex(
             .wen(id_ex_wen),
             .flush(id_ex_flush),
             .bp_flush(id_ex_bp_flush),
+            .id_adef(if2_id.adef),
+            .id_sys(id_sys),
+            .id_brk(id_brk),
+            .id_ine(id_ine),
+            .id_sbcode(id_sbcode),
             .id_pc(if2_id.pc),
             .id_rj_from_fwd(id_rj_from_fwd),
             .id_rk_from_fwd(id_rk_from_fwd),
@@ -408,6 +447,8 @@ ex_ctrl U_ex_ctrl(
             .div_out_valid(ex_div_out_valid),
             .ex_access_sz(id_ex.access_sz),
             .ex_rd_from_fwd(id_ex.rd_from_fwd),
+            .ex_ale(ex_ale),
+            .ex_etrn(ex_etrn),
             .mm_access_sz(ex_mm_access_sz),
             .mm_addr(ex_mm_addr),
             .exe_out(ex_exe_out),
@@ -419,21 +460,42 @@ ex_ctrl U_ex_ctrl(
             .pc(id_ex.pc),
             .u12imm(id_ex.u12imm));
 
+always @(*) begin
+    ex_reg_d <= (id_ex.op == `OP_RDCNTID) ? id_ex.reg_j : id_ex.reg_d;
+    ex_csr_wmask <= (id_ex.op == `OP_CSRXCHG) ? 32'd1 : id_ex.id_rj_from_fwd;
+    ex_flush_before <= id_ex.adef &
+                        id_ex.sys &
+                        id_ex.brk &
+                        id_ex.ine &
+                        ex_interrupt &
+                        ex_ale &
+                        ex_etrn;
+end
+
 reg_ex_mm1 ex_mm1(
             .clk(clk),
             .rst_n(rst_n),
             .wen(ex_mm1_wen),
             .ex_csr_wdata(id_ex.id_rd_from_fwd),
-            .ex_csr_wmask(id_ex.id_rj_from_fwd),
+            .ex_csr_wmask(ex_csr_wmask),
             .ex_csr_addr(id_ex.csr_addr),
             .flush(ex_mm1_flush),
+            .ex_adef(id_ex.adef),
+            .ex_sys(id_ex.sys),
+            .ex_brk(id_ex.brk),
+            .ex_ine(id_ex.ine),
+            .ex_ale(ex_ale),
+            .ex_etrn(ex_etrn),
+            .ex_interrupt(ex_interrupt),
+            .ex_sbcode(id_ex.sbcode),
+            .ex_flush_before(ex_flush_before),
             .ex_exe_out(ex_exe_out),
             .ex_mm_access_sz(ex_mm_access_sz),
             .ex_mm_addr(ex_mm_addr),
             .ex_mm_re(ex_mm_re),
             .ex_mm_we(ex_mm_we),
             .ex_mm_wdata(ex_mm_wdata),
-            .ex_reg_d(id_ex.reg_d),
+            .ex_reg_d(ex_reg_d),
             .ex_op(id_ex.op),
             .ex_op_type(id_ex.op_type),
             .ex_reg_d_wen(ex_reg_d_wen),
@@ -457,7 +519,7 @@ assign data_cache_we = ex_mm1.mm_we;
 assign data_cache_waddr = ex_mm1.mm_addr;
 assign data_cache_wdata = ex_mm1.mm_wdata;
 assign data_cache_access_sz = ex_mm1.mm_access_sz;
-assign mm2_rdata = data_cache_rdata >> {mm1_mm2.mm_addr_l, 3'b000};
+assign mm2_rdata = data_cache_rdata >> {mm1_mm2.mm_addr[1:0], 3'b000};
 assign mm2_hit = data_cache_hit;
 
 reg_mm1_mm2 mm1_mm2(
@@ -465,12 +527,21 @@ reg_mm1_mm2 mm1_mm2(
             .rst_n(rst_n),
             .wen(mm1_mm2_wen),
             .flush(mm1_mm2_flush),
+            .mm1_adef(ex_mm1.adef),
+            .mm1_sys(ex_mm1.sys),
+            .mm1_brk(ex_mm1.brk),
+            .mm1_ine(ex_mm1.ine),
+            .mm1_ale(ex_mm1.ale),
+            .mm1_interrupt(ex_mm1.interrupt),
+            .mm1_etrn(ex_mm1.etrn),
+            .mm1_sbcode(ex_mm1.sbcode),
+            .mm1_flush_before(ex_mm1.flush_before),
             .mm1_csr_wdata(ex_mm1.csr_wdata),
             .mm1_csr_wmask(ex_mm1.csr_wmask),
             .mm1_csr_addr(ex_mm1.csr_addr),
             .mm1_exe_out(ex_mm1.exe_out),
             .mm1_mm_access_sz(ex_mm1.mm_access_sz),
-            .mm1_mm_addr_l(ex_mm1.mm_addr[1:0]),
+            .mm1_mm_addr(ex_mm1.mm_addr),
             .mm1_mm_re(ex_mm1.mm_re),
             .mm1_reg_d(ex_mm1.reg_d),
             .mm1_op(ex_mm1.op),
@@ -478,28 +549,83 @@ reg_mm1_mm2 mm1_mm2(
             .mm1_reg_d_wen(ex_mm1.reg_d_wen),
             .mm1_pc(ex_mm1.pc));
 
+csr_ctrl U_csr_ctrl(
+            .mm2_csr_we(mm2_csr_we),
+            .mm2_ecode(mm2_ecode),
+            .mm2_esubcode(mm2_esubcode),
+            .op(mm1_mm2.op),
+            .mm2_adef(mm1_mm2.adef),
+            .mm2_sys(mm1_mm2.sys),
+            .mm2_brk(mm1_mm2.brk),
+            .mm2_ine(mm1_mm2.ine),
+            .mm2_ale(mm1_mm2.ale),
+            .mm2_interrupt(mm1_mm2.interrupt));
+
 reg_mm2_wb mm2_wb(
             .clk(clk),
             .rst_n(rst_n),
             .wen(mm2_wb_wen),
+            .flush(mm2_wb_flush),
+            .mm2_csr_we(mm2_csr_we),
+            .mm2_ecode(mm2_ecode),
+            .mm2_esubcode(mm2_esubcode),
+            .mm2_adef(mm1_mm2.adef),
+            .mm2_sys(mm1_mm2.sys),
+            .mm2_brk(mm1_mm2.brk),
+            .mm2_ine(mm1_mm2.ine),
+            .mm2_ale(mm1_mm2.ale),
+            .mm2_interrupt(mm1_mm2.interrupt),
+            .mm2_etrn(mm1_mm2.etrn),
+            .mm2_sbcode(mm1_mm2.sbcode),
+            .mm2_flush_before(mm1_mm2.flush_before),
             .mm2_csr_wdata(mm1_mm2.csr_wdata),
             .mm2_csr_wmask(mm1_mm2.csr_wmask),
             .mm2_csr_addr(mm1_mm2.csr_addr),
-            .flush(mm2_wb_flush),
             .mm2_exe_out(mm1_mm2.exe_out),
             .mm2_reg_d(mm1_mm2.reg_d),
             .mm2_op(mm1_mm2.op),
             .mm2_op_type(mm1_mm2.op_type),
             .mm2_rdata(mm2_rdata),
+            .mm2_mm_addr(mm1_mm2.mm_addr),
             .mm2_mm_access_sz(mm1_mm2.mm_access_sz),
             .mm2_reg_d_wen(mm1_mm2.reg_d_wen),
             .mm2_pc(mm1_mm2.pc));
+
+always @(*) begin
+    wb_exception = (mm2_wb.flush_before || !mm2_wb.etrn);
+end
+
+csr U_csr(
+            .clk(clk),
+            .rst_n(rst_n),
+            .csr_we(mm2_wb.csr_we),
+            .csr_addr(mm2_wb.csr_addr),
+            .csr_wdata(mm2_wb.csr_wdata),
+            .csr_wmask(mm2_wb.csr_wmask),
+            .etrn_flush(mm2_wb.etrn),
+            .csr_exception(wb_exception),
+            .csr_ecode(mm2_wb.ecode),
+            .csr_esubcode(mm2_wb.esubcode),
+            .wb_vaddr(mm2_wb.mm_addr),
+            .wb_pc(mm2_wb.pc),
+            .csr_rdata(wb_csr_rdata),
+            .interrupt(ex_interrupt),
+            .timer(csr_timer),
+            .timer_id(csr_timer_id),
+            .exception_entry(wb_exception_entry),
+            .exception_return_entry(wb_exception_return_entry));
+
+always @(*) begin
+    wb_entry = op == `OP_ETRN ? wb_exception_return_entry : wb_exception_entry;
+end
 
 regwrite U_regwrite(
             .exe_out(mm2_wb.exe_out),
             .reg_d(mm2_wb.reg_d),
             .op(mm2_wb.op),
             // .op_type(mm2_wb.op_type),
+            .csr_timer(csr_timer),
+            .csr_timer_id(csr_timer_id),
             .wb_mm_access_sz(mm2_wb.mm_access_sz),
             .rdata(mm2_wb.rdata),
             .gr_waddr(wb_gr_waddr),

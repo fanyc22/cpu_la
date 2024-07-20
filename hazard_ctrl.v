@@ -22,6 +22,12 @@ module hazard_ctrl (
         pc_is_wrong,
         pc_correct,
 //input
+        ex_flush_before,
+        mm1_flush_before,
+        mm2_flush_before,
+        wb_flush_before,
+        wb_entry,
+
         ex_exe_out_valid,
 
         ex_pc,
@@ -50,6 +56,12 @@ module hazard_ctrl (
         mm2_mm_load,
         wb_reg_d_wen,
         wb_reg_d);
+
+input wire ex_flush_before;
+input wire mm1_flush_before;
+input wire mm2_flush_before;
+input wire wb_flush_before;
+input wire[31:0] wb_entry;
 
 input wire ex_exe_out_valid;
 
@@ -209,7 +221,89 @@ always @(*) begin
 end
 
 always @(*) begin
-    if(!ex_exe_out_valid) begin
+    if(ex_flush_before & mm1_flush_before & mm2_flush_before & wb_flush_before) begin
+        if(wb_flush_before) begin
+            pc_wen <= 1;
+            pc_is_wrong <= 1;
+            pc_correct <= wb_entry;
+
+            if1_if2_flush <= 1;
+            if2_id_flush <= 0;
+            id_ex_flush <= 0;
+            ex_mm1_flush <= 0;
+            mm1_mm2_flush <= 0;
+            mm2_wb_flush <= 0;
+
+            if1_if2_wen <= 1;
+            if2_id_wen <= 1;
+            id_ex_wen <= 1;
+            id_ex_bp_flush <= 0;
+            ex_mm1_wen <= 1;
+            mm1_mm2_wen <= 1;
+            mm2_wb_wen <= 1;
+        end
+        else if(mm2_flush_before) begin
+            pc_wen <= 0;
+            pc_is_wrong <= 0;
+            pc_correct <= 32'h0;
+
+            if1_if2_flush <= 1;
+            if2_id_flush <= 0;
+            id_ex_flush <= 0;
+            ex_mm1_flush <= 0;
+            mm1_mm2_flush <= 0;
+            mm2_wb_flush <= 0;
+
+            if1_if2_wen <= 1;
+            if2_id_wen <= 1;
+            id_ex_wen <= 1;
+            id_ex_bp_flush <= 0;
+            ex_mm1_wen <= 1;
+            mm1_mm2_wen <= 1;
+            mm2_wb_wen <= 1;
+        end
+        else if(mm1_flush_before) begin
+            pc_wen <= 0;
+            pc_is_wrong <= 0;
+            pc_correct <= 32'h0;
+
+            if1_if2_flush <= 1;
+            if2_id_flush <= 0;
+            id_ex_flush <= 0;
+            ex_mm1_flush <= 0;
+            mm1_mm2_flush <= 0;
+            mm2_wb_flush <= 0;
+            
+            if1_if2_wen <= 1;
+            if2_id_wen <= 1;
+            id_ex_wen <= 1;
+            id_ex_bp_flush <= 0;
+            ex_mm1_wen <= 1;
+            mm1_mm2_wen <= 1;
+            mm2_wb_wen <= 1;
+        end
+        else begin
+            pc_wen <= 0;
+            pc_is_wrong <= 0;
+            pc_correct <= 32'h0;
+
+            if1_if2_flush <= 1;
+            if2_id_flush <= 1;
+            id_ex_flush <= 1;
+            ex_mm1_flush <= 0;
+            mm1_mm2_flush <= 0;
+            mm2_wb_flush <= 0;
+
+            if1_if2_wen <= 1;
+            if2_id_wen <= 1;
+            id_ex_wen <= 1;
+            id_ex_bp_flush <= 0;
+            ex_mm1_wen <= 1;
+            mm1_mm2_wen <= 1;
+            mm2_wb_wen <= 1;
+        end
+    end
+    else if(!ex_exe_out_valid) begin
         pc_wen <= 0;
         pc_is_wrong <= 0;
         pc_correct <= 32'h0;
