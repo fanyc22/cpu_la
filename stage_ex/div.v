@@ -27,6 +27,8 @@ wire axi_divisor_tready_signed;
 wire axi_dividend_tready_signed;
 wire axi_divisor_tready_unsigned;
 wire axi_dividend_tready_unsigned;
+wire axi_result_valid_signed;
+wire axi_result_valid_unsigned;
 
 reg oprating;
 reg [5:0] cycle_cnt;
@@ -82,7 +84,7 @@ div_gen_signed U_div_gen_signed (
     .s_axis_dividend_tdata(div_in_dividend),
     .s_axis_dividend_tvalid(div_in_valid),
     .m_axis_dout_tdata(div_out_total_signed),
-    .m_axis_dout_tvalid(axi_reslut_valid_signed));
+    .m_axis_dout_tvalid(axi_result_valid_signed));
 
 div_gen_unsigned U_div_gen_unsigned (
     .aclk(clk),
@@ -94,7 +96,8 @@ div_gen_unsigned U_div_gen_unsigned (
     .s_axis_dividend_tdata(div_in_dividend),
     .s_axis_dividend_tvalid(div_in_valid),
     .m_axis_dout_tdata(div_out_total_unsigned),
-    .m_axis_dout_tvalid(axi_reslut_valid_unsigned));
+    .m_axis_dout_tvalid(axi_result_valid_unsigned));
+
 
 always @(*) begin
     if(!rst_n) begin

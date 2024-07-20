@@ -1,12 +1,11 @@
 `include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
-// 暂时未考虑 BREAK 和 SYSCALL
 
 module decoder (
 //output
             id_sys,
             id_brk,
             id_ine,
-            id_ecode,
+            id_sbcode,
             reg_d,
             reg_j,
             reg_k,
@@ -58,7 +57,7 @@ wire [7:0] op_atomic;
 wire [7:0] op_csr;
 wire [7:0] op_u12i;
 wire [7:0] op_rdcnt;
-wire [7:0] op_etrn;
+reg [7:0] op_etrn;
 
 always@(*) begin
     reg_d <= inst[4:0];
@@ -216,8 +215,8 @@ always @(*) begin
 end
 
 always @(*) begin
-    id_sys <= (inst[32:15] == 17'b00000000001010100);
-    id_brk <= (inst[32:15] == 17'b00000000001010110);
+    id_sys <= (inst[31:15] == 17'b00000000001010100);
+    id_brk <= (inst[31:15] == 17'b00000000001010110);
     id_sbcode <= inst[14:0];
     id_ine <= (op_type == `OP_TYPE_INVALID);
 end

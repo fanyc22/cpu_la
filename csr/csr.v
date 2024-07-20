@@ -37,7 +37,7 @@ input wire [31:0] wb_pc;
 output reg [31:0] csr_rdata;
 output reg [31:0] exception_entry;
 output reg [31:0] exception_return_entry;
-output reg interruption;
+output reg interrupt;
 output reg [63:0] timer;
 output reg [31:0] timer_id;
 
@@ -75,7 +75,7 @@ always @(posedge clk) begin
         csr_reg[`CSR_ERA] <= wb_pc;
         csr_reg[`CSR_ESTAT][`CSR_ESTAT_ECODE] <= wb_ecode;
         csr_reg[`CSR_ESTAT][`CSR_ESTAT_ESUBCODE] <= wb_esubcode;
-        csr_reg[`CSR_BDAV][`CSR_BDAV_VADDR] <= wb_vaddr;
+        csr_reg[`CSR_BADV] <= wb_vaddr;
     end
     else if(ertn_flush) begin
         csr_reg[`CSR_CRMD][`CSR_CRMD_PLV] <= csr_reg[`CSR_PRMD][`CSR_PRMD_PPLV];

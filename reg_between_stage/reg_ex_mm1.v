@@ -125,13 +125,13 @@ always @(posedge clk ) begin
         exe_out <= flush ? 0 : ex_exe_out;
         mm_access_sz <= ex_mm_access_sz;
         mm_addr <= ex_mm_addr;
-        mm_re <= flush ? (ex_flush_before ? 0 : ex_mm_re);
-        mm_we <= flush ? (ex_flush_before ? 0 : ex_mm_we);
+        mm_re <= flush ? 0 : (ex_flush_before ? 0 : ex_mm_re);
+        mm_we <= flush ? 0 : (ex_flush_before ? 0 : ex_mm_we);
         mm_wdata <= ex_mm_wdata;
         reg_d <= ex_reg_d;
         op <= flush ? 0 : ex_op;
         op_type <= flush ? 0 : ex_op_type;
-        reg_d_wen <= flush ?(ex_flush_before ? 0 : ex_reg_d_wen);
+        reg_d_wen <= flush ? 0 : (ex_flush_before ? 0 : ex_reg_d_wen);
         pc <= flush ? 0 : ex_pc;
     end
 end
