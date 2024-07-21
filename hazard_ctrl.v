@@ -48,14 +48,18 @@ module hazard_ctrl (
         ex_reg_d_wen,
         ex_reg_d,
         ex_mm_load,
+        ex_csr_re,
         mm1_reg_d_wen,
         mm1_reg_d,
         mm1_mm_load,
+        mm1_csr_re,
         mm2_reg_d_wen,
         mm2_reg_d,
         mm2_mm_load,
+        mm2_csr_re,
         wb_reg_d_wen,
-        wb_reg_d);
+        wb_reg_d,
+        wb_csr_re);
 
 input wire ex_flush_before;
 input wire mm1_flush_before;
@@ -84,14 +88,18 @@ input wire[4:0] id_reg_d;
 input wire ex_reg_d_wen;
 input wire[4:0] ex_reg_d;
 input wire ex_mm_load;
+input wire ex_csr_re;
 input wire mm1_reg_d_wen;
 input wire[4:0] mm1_reg_d;
 input wire mm1_mm_load;
+input wire mm1_csr_re;
 input wire mm2_reg_d_wen;
 input wire[4:0] mm2_reg_d;
 input wire mm2_mm_load;
+input wire mm2_csr_re;
 input wire wb_reg_d_wen;
 input wire[4:0] wb_reg_d;
+input wire wb_csr_re;
 
 output reg pc_is_wrong;
 output reg [31:0] pc_correct;
@@ -122,33 +130,45 @@ reg lau_k;
 reg lau_d;
 wire lau;
 
+reg csrau_j;
+reg csrau_k;
+reg csrau_d;
+wire csrau;
+
 assign lau = lau_j | lau_k | lau_d;
+assign csrau = csrau_j | csrau_k | csrau_d;
 
 always @(*) begin
     if(id_reg_j_ren && id_reg_j)begin
         if(id_reg_j == ex_reg_d && ex_reg_d_wen) begin
             lau_j <= ex_mm_load;
+            csrau_j <= ex_csr_re;
             fwd_src_j <= `FWD_SRC_EX;
         end
         else if(id_reg_j == mm1_reg_d && mm1_reg_d_wen) begin
             lau_j <= mm1_mm_load;
+            csrau_j <= mm1_csr_re;
             fwd_src_j <= `FWD_SRC_MM1;
         end
         else if(id_reg_j == mm2_reg_d && mm2_reg_d_wen) begin
             lau_j <= 0;
+            csrau_j <= mm2_csr_re;
             fwd_src_j <= mm2_mm_load ? `FWD_SRC_MM2_MEM :`FWD_SRC_MM2_REG;
         end
         else if(id_reg_j == wb_reg_d && wb_reg_d_wen) begin
             lau_j <= 0;
+            csrau_j <= 0;
             fwd_src_j <= `FWD_SRC_WB;
         end
         else begin
             lau_j <= 0;
+            csrau_j <= 0;
             fwd_src_j <= `FWD_SRC_NONE;
         end
     end
     else begin
         lau_j <= 0;
+        csrau_j <= 0;
         fwd_src_j <= `FWD_SRC_NONE;
     end
 end
@@ -157,27 +177,33 @@ always @(*) begin
     if(id_reg_k_ren && id_reg_k)begin
         if(id_reg_k == ex_reg_d && ex_reg_d_wen) begin
             lau_k <= ex_mm_load;
+            csrau_k <= ex_csr_re;
             fwd_src_k <= `FWD_SRC_EX;
         end
         else if(id_reg_k == mm1_reg_d && mm1_reg_d_wen) begin
             lau_k <= mm1_mm_load;
+            csrau_k <= mm1_csr_re;
             fwd_src_k <= `FWD_SRC_MM1;
         end
         else if(id_reg_k == mm2_reg_d && mm2_reg_d_wen) begin
             lau_k <= 0;
+            csrau_k <= mm2_csr_re;
             fwd_src_k <= mm2_mm_load ? `FWD_SRC_MM2_MEM :`FWD_SRC_MM2_REG;
         end
         else if(id_reg_k == wb_reg_d && wb_reg_d_wen) begin
             lau_k <= 0;
+            csrau_k <= 0;
             fwd_src_k <= `FWD_SRC_WB;
         end
         else begin
             lau_k <= 0;
+            csrau_k <= 0;
             fwd_src_k <= `FWD_SRC_NONE;
         end
     end
     else begin
         lau_k <= 0;
+        csrau_k <= 0;
         fwd_src_k <= `FWD_SRC_NONE;
     end
 end
@@ -186,27 +212,33 @@ always @(*) begin
     if(id_reg_d_ren && id_reg_d)begin
         if(id_reg_d == ex_reg_d && ex_reg_d_wen) begin
             lau_d <= ex_mm_load;
+            csrau_d <= ex_csr_re;
             fwd_src_d <= `FWD_SRC_EX;
         end
         else if(id_reg_d == mm1_reg_d && mm1_reg_d_wen) begin
             lau_d <= mm1_mm_load;
+            csrau_d <= mm1_csr_re;
             fwd_src_d <= `FWD_SRC_MM1;
         end
         else if(id_reg_d == mm2_reg_d && mm2_reg_d_wen) begin
             lau_d <= 0;
+            csrau_d <= mm2_csr_re;
             fwd_src_d <= mm2_mm_load ? `FWD_SRC_MM2_MEM :`FWD_SRC_MM2_REG;
         end
         else if(id_reg_d == wb_reg_d && wb_reg_d_wen) begin
             lau_d <= 0;
+            csrau_d <= 0;
             fwd_src_d <= `FWD_SRC_WB;
         end
         else begin
             lau_d <= 0;
+            csrau_d <= 0;
             fwd_src_d <= `FWD_SRC_NONE;
         end
     end
     else begin
         lau_d <= 0;
+        csrau_d <= 0;
         fwd_src_d <= `FWD_SRC_NONE;
     end
 end
@@ -221,7 +253,7 @@ always @(*) begin
 end
 
 always @(*) begin
-    if(ex_flush_before & mm1_flush_before & mm2_flush_before & wb_flush_before) begin
+    if(ex_flush_before | mm1_flush_before | mm2_flush_before | wb_flush_before) begin
         if(wb_flush_before) begin
             pc_wen <= 1;
             pc_is_wrong <= 1;
@@ -322,6 +354,26 @@ always @(*) begin
         ex_mm1_wen <= 1;
         mm1_mm2_wen <= 1;
         mm2_wb_wen <= 1;
+    end
+    else if(csrau) begin
+        pc_wen <= 0;
+        pc_is_wrong <= 0;
+        pc_correct <= 32'h0;
+
+        if1_if2_flush <= 0;
+        if2_id_flush <= 0;
+        id_ex_flush <= 1;
+        ex_mm1_flush <= 0;
+        mm1_mm2_flush <= 0;
+        mm2_wb_flush <= 0;
+
+        if1_if2_wen <= 0;
+        if2_id_wen <= 0;
+        id_ex_wen <= 1;
+        id_ex_bp_flush <= 0;
+        ex_mm1_wen <= 1;
+        mm1_mm2_wen <= 1;
+        mm2_wb_wen <= 1; 
     end
     else if(lau) begin
         pc_wen <= 0;

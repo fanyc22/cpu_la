@@ -13,7 +13,7 @@ module pc(/*autoport*/
       pc_is_wrong,
       pc_correct);
 
-parameter PC_INITIAL = 32'h1bff_fffc;
+parameter PC_INITIAL = 32'h1c00_0000;
 
 input wire rst_n;
 input wire clk;
@@ -52,7 +52,7 @@ end
 
 always @(posedge clk) begin
     if(!rst_n) begin
-        icache_re <= 0;
+        icache_re <= 1;
     end
     else begin
         icache_re <= pc_wen;
@@ -64,7 +64,7 @@ always @(posedge clk) begin
 end
 
 always @(*) begin
-    if1_adef = & pc_reg[1:0];
+    if1_adef = | pc_reg[1:0];
 end
 // always @(posedge clk) $display("PC=%x",pc_reg);
 

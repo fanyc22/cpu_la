@@ -24,9 +24,11 @@ module decoder (
             reg_k_ren,
             reg_d_ren,
 //input
-            inst);
+            inst,
+            id_flushed);
 
 input wire [31:0] inst;
+input wire id_flushed;
 
 output reg id_sys;
 output reg id_brk;
@@ -40,7 +42,7 @@ output reg [3:0] op_type;
 output reg [25:0] imm;
 output reg [2:0] imm_sz;
 output reg flag_unsigned;
-output reg [2:0] access_sz;
+output reg [1:0] access_sz;
 output reg is_branch;
 output reg [14:0] bns_code;
 output reg [4:0] shift_imm;
@@ -60,9 +62,14 @@ wire [7:0] op_rdcnt;
 reg [7:0] op_ertn;
 
 always@(*) begin
-    reg_d <= inst[4:0];
     reg_j <= inst[9:5];
     reg_k <= inst[14:10];
+end
+
+always @(*) begin
+    reg_d <= op == `OP_BL ? 5'h01 :
+            op == `OP_RDCNTID ? inst[9:5] :
+            inst[4 : 0];
 end
 
 always @(*) begin
@@ -215,10 +222,10 @@ always @(*) begin
 end
 
 always @(*) begin
-    id_sys <= (inst[31:15] == 17'b00000000001010100);
-    id_brk <= (inst[31:15] == 17'b00000000001010110);
+    id_sys <= (inst[31:15] == 17'b00000000001010110);
+    id_brk <= (inst[31:15] == 17'b00000000001010100);
     id_sbcode <= inst[14:0];
-    id_ine <= (op_type == `OP_TYPE_INVALID);
+    id_ine <= (op_type == `OP_TYPE_INVALID && !id_flushed);
 end
 
 endmodule

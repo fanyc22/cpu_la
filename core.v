@@ -43,14 +43,14 @@ output reg [31:0] inst_cache_raddr;
 output reg inst_cache_we;
 output reg [31:0] inst_cache_waddr;
 output reg [31:0] inst_cache_wdata;
-output reg [2:0] inst_cache_access_sz;
+output reg [1:0] inst_cache_access_sz;
 
 output wire data_cache_re;
 output wire [31:0] data_cache_raddr;
 output wire data_cache_we;
 output wire [31:0] data_cache_waddr;
 output wire [31:0] data_cache_wdata;
-output wire [2:0] data_cache_access_sz;
+output wire [1:0] data_cache_access_sz;
 
 output wire [31:0] debug_wb_pc;
 output wire [3:0] debug_wb_rf_we;
@@ -103,7 +103,7 @@ wire [14:0] id_bns_code;
 wire [4:0] id_shift_imm;
 wire [19:0] id_u12imm;
 wire id_flag_unsigned;
-wire [2:0] id_access_sz;
+wire [1:0] id_access_sz;
 wire id_is_branch;
 wire [13:0] id_csr_addr;
 wire id_reg_j_ren;
@@ -121,22 +121,26 @@ wire ex_mul_out_valid;
 wire [31:0] ex_div_out;
 wire ex_div_out_valid;
 // wire ex_mm_access_op;
-wire [2:0] ex_mm_access_sz;
+wire [1:0] ex_mm_access_sz;
 wire [31:0] ex_mm_addr;
 wire [31:0] ex_exe_out;
 wire ex_exe_out_valid;
 wire ex_mm_re;
 wire ex_mm_we;
 wire [31:0] ex_mm_wdata;
+wire ex_csr_re;
 wire ex_branch;
 wire [31:0] ex_pc_branch;
 wire ex_reg_d_wen;
-reg [4:0] ex_reg_d;
+// reg [4:0] ex_reg_d;
 reg [31:0] ex_csr_wmask;
 reg ex_flush_before;
 wire ex_interrupt;
 wire ex_ertn;
 wire ex_ale;
+wire ex_soft_int_gen;
+reg ex_csr_we;
+reg soft_int_gened;
 
 wire [31:0] mm2_rdata;
 wire mm2_hit;
@@ -155,6 +159,7 @@ reg [31:0] wb_gr_wdata_include_csr;
 
 wire [63:0] csr_timer;
 wire [31:0] csr_timer_id;
+wire [1:0] csr_ecfg_lie_soft;
 
 wire [2:0] fwd_src_j;
 wire [2:0] fwd_src_k;
@@ -202,14 +207,18 @@ hazard_ctrl U_hazard_ctrl(
         .ex_reg_d_wen(ex_reg_d_wen),
         .ex_reg_d(id_ex.reg_d),
         .ex_mm_load(ex_mm_re),
+        .ex_csr_re(ex_csr_re),
         .mm1_reg_d_wen(ex_mm1.reg_d_wen),
         .mm1_reg_d(ex_mm1.reg_d),
         .mm1_mm_load(ex_mm1.mm_re),
+        .mm1_csr_re(ex_mm1.csr_re),
         .mm2_reg_d_wen(mm1_mm2.reg_d_wen),
         .mm2_reg_d(mm1_mm2.reg_d),
         .mm2_mm_load(mm1_mm2.mm_re),
+        .mm2_csr_re(mm1_mm2.csr_re),
         .wb_reg_d_wen(mm2_wb.reg_d_wen),
-        .wb_reg_d(wb_gr_waddr));
+        .wb_reg_d(wb_gr_waddr),
+        .wb_csr_re(mm2_wb.csr_re));
 
 pc U_pc(
          .pc_reg(if1_pc),
@@ -243,7 +252,7 @@ always @(*) begin
         inst_cache_re <= if1_icache_re;
         inst_cache_raddr <= if1_pc;
         inst_cache_we <= 4'b0;
-        inst_cache_access_sz <= 3'b0;
+        inst_cache_access_sz <= `ACCESS_SZ_WORD;
         inst_cache_waddr <= 32'b0;
         inst_cache_wdata <= 32'b0;
 end
@@ -281,7 +290,8 @@ reg_if2_id if2_id(
             .if2_inst(if2_inst),
             .if2_icache_hit(if2_icache_hit),
             .if2_branch_bp(if1_if2.branch_bp),
-            .if1_if2_cache_valid(if1_if2.cache_valid));
+            .if1_if2_cache_valid(if1_if2.cache_valid),
+            .if1_if2_flushed(if1_if2.flushed));
 
 always @(*) begin
     wb_gr_wdata_include_csr = mm2_wb.op_type == `OP_TYPE_CSR ? wb_csr_rdata : wb_gr_wdata;
@@ -327,7 +337,8 @@ decoder U_decoder(
             .csr_addr(id_csr_addr),
             .reg_j_ren(id_reg_j_ren),
             .reg_k_ren(id_reg_k_ren),
-            .reg_d_ren(id_reg_d_ren));
+            .reg_d_ren(id_reg_d_ren),
+            .id_flushed(if2_id.flushed));
 
 fwd U_fwd_j(
             .reg_out(id_rj_from_fwd),
@@ -336,7 +347,7 @@ fwd U_fwd_j(
             .reg_from_mm1(ex_mm1.exe_out),
             .reg_from_mm2(mm1_mm2.exe_out),
             .mem_from_mm2(mm2_rdata),
-            .reg_from_wb(wb_gr_wdata),
+            .reg_from_wb(wb_gr_wdata_include_csr),
             .fwd_ctrl(fwd_src_j));
 
 fwd U_fwd_k(
@@ -346,7 +357,7 @@ fwd U_fwd_k(
             .reg_from_mm1(ex_mm1.exe_out),
             .reg_from_mm2(mm1_mm2.exe_out),
             .mem_from_mm2(mm2_rdata),
-            .reg_from_wb(wb_gr_wdata),
+            .reg_from_wb(wb_gr_wdata_include_csr),
             .fwd_ctrl(fwd_src_k));
 
 fwd U_fwd_d(
@@ -356,7 +367,7 @@ fwd U_fwd_d(
             .reg_from_mm1(ex_mm1.exe_out),
             .reg_from_mm2(mm1_mm2.exe_out),
             .mem_from_mm2(mm2_rdata),
-            .reg_from_wb(wb_gr_wdata),
+            .reg_from_wb(wb_gr_wdata_include_csr),
             .fwd_ctrl(fwd_src_d));
 
 reg_id_ex id_ex(
@@ -461,21 +472,56 @@ ex_ctrl U_ex_ctrl(
             .mm_re(ex_mm_re),
             .mm_we(ex_mm_we),
             .mm_wdata(ex_mm_wdata),
+            .csr_re(ex_csr_re),
             .reg_d_wen(ex_reg_d_wen),
             .pc(id_ex.pc),
             .u12imm(id_ex.u12imm));
 
 always @(*) begin
-    ex_reg_d <= (id_ex.op == `OP_RDCNTID) ? id_ex.reg_j : id_ex.reg_d;
-    ex_csr_wmask <= (id_ex.op == `OP_CSRXCHG) ? id_ex.id_rj_from_fwd : 32'd1;
-    ex_flush_before <= id_ex.adef |
+    // ex_reg_d <= (id_ex.op == `OP_RDCNTID) ? id_ex.reg_j : id_ex.reg_d;
+    ex_csr_wmask <= (id_ex.op == `OP_CSRXCHG) ? id_ex.rj_from_fwd : 32'b11111111_11111111_11111111_11111111;
+    ex_flush_before <= (id_ex.adef |
                         id_ex.sys |
                         id_ex.brk |
                         id_ex.ine |
                         ex_interrupt |
                         ex_ale |
-                        ex_ertn;
+                        ex_ertn |
+                        soft_int_gened) & ( | id_ex.pc);
 end
+
+always @(posedge clk) begin
+    if(!rst_n) begin
+        soft_int_gened <= 1'b0;
+    end
+    else if(soft_int_gened && | id_ex.pc) begin
+        soft_int_gened <= 1'b0;
+    end
+    else if(ex_soft_int_gen) begin
+        soft_int_gened <= 1'b1;
+    end
+end
+
+always @(*) begin
+    ex_csr_we = (!ex_flush_before) && ((id_ex.op == `OP_CSRWR) || (id_ex.op == `OP_CSRXCHG));
+end
+
+soft_int_gen U_soft_int_gen(
+            .ex_soft_int_gen(ex_soft_int_gen),
+            .ex_csr_addr(id_ex.csr_addr),
+            .ex_csr_wdata(id_ex.rd_from_fwd),
+            .ex_csr_we(ex_csr_we),
+            .ex_csr_wmask(ex_csr_wmask),
+            .mm1_csr_addr(ex_mm1.csr_addr),
+            .mm1_csr_wdata(ex_mm1.csr_wdata),
+            .mm1_csr_we(ex_mm1.csr_we),
+            .mm1_csr_wmask(ex_mm1.csr_wmask),
+            .mm2_csr_addr(mm1_mm2.csr_addr),
+            .mm2_csr_wdata(mm1_mm2.csr_wdata),
+            .mm2_csr_we(mm1_mm2.csr_we),
+            .mm2_csr_wmask(mm1_mm2.csr_wmask),
+            .csr_ecfg_lie_soft(csr_ecfg_lie_soft));
+
 
 reg_ex_mm1 ex_mm1(
             .clk(clk),
@@ -484,6 +530,9 @@ reg_ex_mm1 ex_mm1(
             .ex_csr_wdata(id_ex.rd_from_fwd),
             .ex_csr_wmask(ex_csr_wmask),
             .ex_csr_addr(id_ex.csr_addr),
+            .ex_csr_re(ex_csr_re),
+            .ex_csr_we(ex_csr_we),
+            // .ex_soft_int_gen(ex_soft_int_gen),
             .flush(ex_mm1_flush),
             .ex_adef(id_ex.adef),
             .ex_sys(id_ex.sys),
@@ -500,7 +549,7 @@ reg_ex_mm1 ex_mm1(
             .ex_mm_re(ex_mm_re),
             .ex_mm_we(ex_mm_we),
             .ex_mm_wdata(ex_mm_wdata),
-            .ex_reg_d(ex_reg_d),
+            .ex_reg_d(id_ex.reg_d),
             .ex_op(id_ex.op),
             .ex_op_type(id_ex.op_type),
             .ex_reg_d_wen(ex_reg_d_wen),
@@ -544,6 +593,8 @@ reg_mm1_mm2 mm1_mm2(
             .mm1_csr_wdata(ex_mm1.csr_wdata),
             .mm1_csr_wmask(ex_mm1.csr_wmask),
             .mm1_csr_addr(ex_mm1.csr_addr),
+            .mm1_csr_re(ex_mm1.csr_re),
+            .mm1_csr_we(ex_mm1.csr_we),
             .mm1_exe_out(ex_mm1.exe_out),
             .mm1_mm_access_sz(ex_mm1.mm_access_sz),
             .mm1_mm_addr(ex_mm1.mm_addr),
@@ -586,6 +637,8 @@ reg_mm2_wb mm2_wb(
             .mm2_csr_wdata(mm1_mm2.csr_wdata),
             .mm2_csr_wmask(mm1_mm2.csr_wmask),
             .mm2_csr_addr(mm1_mm2.csr_addr),
+            .mm2_csr_re(mm1_mm2.csr_re),
+            // .mm2_csr_we(mm1_mm2.csr_we),
             .mm2_exe_out(mm1_mm2.exe_out),
             .mm2_reg_d(mm1_mm2.reg_d),
             .mm2_op(mm1_mm2.op),
@@ -618,7 +671,8 @@ csr U_csr(
             .timer(csr_timer),
             .timer_id(csr_timer_id),
             .exception_entry(wb_exception_entry),
-            .exception_return_entry(wb_exception_return_entry));
+            .exception_return_entry(wb_exception_return_entry),
+            .csr_ecfg_lie_soft(csr_ecfg_lie_soft));
 
 always @(*) begin
     wb_entry = mm2_wb.op == `OP_ERTN ? wb_exception_return_entry : wb_exception_entry;

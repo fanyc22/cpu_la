@@ -29,7 +29,7 @@ wire inst_cache_hit;
 wire inst_cache_we;
 wire [31:0] inst_cache_waddr;
 wire [31:0] inst_cache_wdata;
-wire [2:0] inst_cache_access_sz;
+wire [1:0] inst_cache_access_sz;
 wire data_cache_re;
 wire [31:0] data_cache_raddr;
 wire [31:0] data_cache_rdata;
@@ -37,7 +37,7 @@ wire data_cache_hit;
 wire data_cache_we;
 wire [31:0] data_cache_waddr;
 wire [31:0] data_cache_wdata;
-wire [2:0] data_cache_access_sz;
+wire [1:0] data_cache_access_sz;
 
 core U_core (
 //output

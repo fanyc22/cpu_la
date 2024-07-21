@@ -110,12 +110,14 @@
 
 `define CSR_CRMD_PLV    1 :0
 `define CSR_CRMD_IE     2
+`define CSR_CRMD_DA     3
+`define CSR_CRMD_PG     4
 `define CSR_PRMD_PPLV   1 :0
 `define CSR_PRMD_PIE    2
 `define CSR_ECFG_LIE    12:0
 `define CSR_ECFG_LIE90  9 :0
 `define CSR_ESTAT_IS10  1 :0
-`define CSR_ESTAT_IS    9 :0
+`define CSR_ESTAT_IS    12 :0
 `define CSR_ESTAT_ECODE 21:16
 `define CSR_ESTAT_ESUBCODE 31:22
 `define CSR_ERA_PC      31:0

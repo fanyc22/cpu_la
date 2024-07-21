@@ -19,6 +19,8 @@ module reg_mm1_mm2 (
             mm1_csr_wdata,
             mm1_csr_wmask,
             mm1_csr_addr,
+            mm1_csr_re,
+            mm1_csr_we,
             mm1_exe_out,
             mm1_mm_access_sz,
             mm1_mm_addr,
@@ -45,6 +47,8 @@ input wire mm1_flush_before;
 input wire [31:0] mm1_csr_wdata;
 input wire [31:0] mm1_csr_wmask;
 input wire [13:0] mm1_csr_addr;
+input wire mm1_csr_re;
+input wire mm1_csr_we;
 input wire [31:0] mm1_exe_out;
 input wire [1:0] mm1_mm_access_sz;
 input wire [31:0] mm1_mm_addr;
@@ -67,6 +71,8 @@ reg flush_before;
 reg [31:0] csr_wdata;
 reg [31:0] csr_wmask;
 reg [31:0] csr_addr;
+reg csr_re;
+reg csr_we;
 reg [31:0] exe_out;
 reg [1:0] mm_access_sz;
 reg [31:0] mm_addr;
@@ -91,6 +97,8 @@ always @(posedge clk ) begin
         csr_wdata <= 32'b0;
         csr_wmask <= 32'b0;
         csr_addr <= 32'b0;
+        csr_re <= 1'b0;
+        csr_we <= 1'b0;
         exe_out <= 32'b0;
         mm_access_sz <= 3'b0;
         mm_addr <= 2'b0;
@@ -114,6 +122,8 @@ always @(posedge clk ) begin
         csr_wdata <= mm1_csr_wdata;
         csr_wmask <= mm1_csr_wmask;
         csr_addr <= mm1_csr_addr;
+        csr_re <= mm1_csr_re;
+        csr_we <= mm1_csr_we;
         exe_out <= mm1_exe_out;
         mm_access_sz <= mm1_mm_access_sz;
         mm_addr <= mm1_mm_addr;

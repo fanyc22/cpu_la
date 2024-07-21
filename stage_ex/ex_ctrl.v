@@ -10,6 +10,7 @@ module ex_ctrl (
         mm_we,
         mm_addr,
         mm_wdata,
+        csr_re,
         //reg_d,
         exe_out,
         exe_out_valid,
@@ -36,7 +37,7 @@ input wire [31:0] mul_out;
 input wire mul_out_valid;
 input wire [31:0] div_out;
 input wire div_out_valid;
-input wire [2:0] ex_access_sz;
+input wire [1:0] ex_access_sz;
 input wire [31:0] ex_rd_from_fwd    ;
 input wire [31:0] pc;
 input wire [19:0] u12imm;
@@ -44,13 +45,14 @@ input wire [19:0] u12imm;
 // output reg [2:0] mm_access_op;
 output reg ex_ale;
 output reg ex_ertn;
-output reg [2:0] mm_access_sz;
+output reg [1:0] mm_access_sz;
 output reg [31:0] mm_addr;
 output reg [31:0] exe_out;
 output reg exe_out_valid;
 output reg mm_re;
 output reg mm_we;
 output reg [31:0] mm_wdata;
+output reg csr_re;
 output reg reg_d_wen;
 
 always @(*) begin
@@ -79,6 +81,7 @@ always @(*) begin
         `OP_LU12I:  exe_out = {u12imm,12'b0};
         `OP_PCADDU12I:  exe_out = pc + {u12imm,12'b0};
         `OP_BL:  exe_out = pc + 32'd4;
+        `OP_JIRL:  exe_out = pc + 32'd4;
         `OP_MUL:  exe_out = mul_out;
         `OP_MULH:  exe_out = mul_out;
         `OP_MULHU:  exe_out = mul_out;
@@ -111,6 +114,10 @@ always @(*) begin
 end
 
 always @(*) begin
+    csr_re = (op_type == `OP_TYPE_CSR) || op_type == `OP_TYPE_RDCNT;
+end
+
+always @(*) begin
     mm_we = (op == `OP_ST) || (op == `OP_SC);
 end
 
@@ -131,7 +138,7 @@ end
 always @(*) begin
     if(mm_re||mm_we) begin
         case (mm_access_sz)
-            `ACCESS_SZ_WORD: ex_ale = &  mm_addr[1:0];
+            `ACCESS_SZ_WORD: ex_ale = | mm_addr[1:0];
             `ACCESS_SZ_HALF: ex_ale = mm_addr[0];
             default: ex_ale = 1'b0;
         endcase

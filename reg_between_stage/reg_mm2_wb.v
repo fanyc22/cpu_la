@@ -22,6 +22,8 @@ module reg_mm2_wb (
             mm2_csr_wdata,
             mm2_csr_wmask,
             mm2_csr_addr,
+            mm2_csr_re,
+            // mm2_csr_we,
             mm2_exe_out,
             mm2_reg_d,
             mm2_op,
@@ -51,6 +53,8 @@ input wire mm2_flush_before;
 input wire [31:0] mm2_csr_wdata;
 input wire [31:0] mm2_csr_wmask;
 input wire [13:0] mm2_csr_addr;
+input wire mm2_csr_re;
+// input wire mm2_csr_we;
 input wire [31:0] mm2_exe_out;
 input wire [4:0] mm2_reg_d;
 input wire [7:0] mm2_op;
@@ -76,6 +80,8 @@ reg flush_before;
 reg [31:0] csr_wdata;
 reg [31:0] csr_wmask;
 reg [31:0] csr_addr;
+reg csr_re;
+// reg csr_we;
 reg [31:0] exe_out;
 reg [4:0] reg_d;
 reg [7:0] op;
@@ -103,6 +109,8 @@ always @(posedge clk ) begin
         csr_wdata <= 32'b0;
         csr_wmask <= 32'b0;
         csr_addr <= 32'b0;
+        csr_re <= 1'b0;
+        // csr_we <= 1'b0;
         exe_out <= 32'b0;
         reg_d <= 5'b0;
         op <= 8'b0;
@@ -129,6 +137,8 @@ always @(posedge clk ) begin
         csr_wdata <= mm2_csr_wdata;
         csr_wmask <= mm2_csr_wmask;
         csr_addr <= mm2_csr_addr;
+        csr_re <= mm2_csr_re;
+        // csr_we <= mm2_csr_we;
         exe_out <= mm2_exe_out;
         reg_d <= mm2_reg_d;
         op <= mm2_op;

@@ -12,7 +12,8 @@ module reg_if2_id (
             if2_inst,
             if2_icache_hit,
             if2_branch_bp,
-            if1_if2_cache_valid);
+            if1_if2_cache_valid,
+            if1_if2_flushed);
     
 input wire clk;
 input wire rst_n;
@@ -24,6 +25,7 @@ input wire [31:0] if2_inst;
 input wire if2_icache_hit;
 input wire if2_branch_bp;
 input wire if1_if2_cache_valid;
+input wire if1_if2_flushed;
 
 reg adef;
 reg [31:0] pc;
@@ -32,6 +34,7 @@ reg hit;
 reg branch_bp;
 reg stalled;
 reg [31:0] buffer_inst;
+reg flushed;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
@@ -40,6 +43,7 @@ always @(posedge clk ) begin
         inst <= 32'b0;
         hit <= 1'b0;
         branch_bp <= 1'b0;
+        flushed <= 1'b1;
     end
     else if(wen) begin
         adef <= flush ? 0 : if2_adef;
@@ -49,6 +53,7 @@ always @(posedge clk ) begin
         hit <= flush ? 0 : 
                 if1_if2_cache_valid ? if2_icache_hit : 1'b0;
         branch_bp <= flush ? 0 : if2_branch_bp;
+        flushed <= flush || if1_if2_flushed;
     end
 end
 

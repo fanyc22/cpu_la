@@ -29,7 +29,7 @@ always @(posedge clk ) begin
     if(!rst_n) begin
         pc <= 32'b0;
         cache_valid <= 1'b0;
-        flushed <= 1'b0;
+        flushed <= 1'b1;
         branch_bp <= 1'b0;
         adef <= 1'b0;
     end

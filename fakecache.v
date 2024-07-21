@@ -27,7 +27,7 @@ input wire [31:0] cache_raddr;
 input wire cache_we;
 input wire [31:0] cache_waddr;
 input wire [31:0] cache_wdata;
-input wire [2:0] cache_access_sz;
+input wire [1:0] cache_access_sz;
 
 input wire [31:0] sram_rdata;
 

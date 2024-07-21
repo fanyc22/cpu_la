@@ -28,7 +28,7 @@ output reg [5:0] mm2_ecode;
 output reg [8:0] mm2_esubcode;
 
 always @(*) begin
-    if(mm2_adef & mm2_sys & mm2_brk & mm2_ine & mm2_ale & mm2_interrupt) begin
+    if(mm2_adef | mm2_sys | mm2_brk | mm2_ine | mm2_ale | mm2_interrupt) begin
         mm2_csr_we = 1'b0;
         mm2_ecode = mm2_interrupt ? `ECODE_INT:
                     mm2_adef ? `ECODE_ADE:

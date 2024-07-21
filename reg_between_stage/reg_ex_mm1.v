@@ -19,6 +19,8 @@ module reg_ex_mm1 (
             ex_csr_wdata,
             ex_csr_wmask,
             ex_csr_addr,
+            ex_csr_re,
+            ex_csr_we,
             ex_exe_out,
             ex_mm_access_sz,
             ex_mm_addr,
@@ -47,6 +49,9 @@ input wire ex_flush_before;
 input wire [31:0] ex_csr_wdata;
 input wire [31:0] ex_csr_wmask;
 input wire [13:0] ex_csr_addr;
+input wire ex_csr_re;
+input wire ex_csr_we;
+// input wire ex_soft_int_gen;
 input wire [31:0] ex_exe_out;
 input wire [1:0] ex_mm_access_sz;
 input wire [31:0] ex_mm_addr;
@@ -71,6 +76,9 @@ reg flush_before;
 reg [31:0] csr_wdata;
 reg [31:0] csr_wmask;
 reg [31:0] csr_addr;
+reg csr_re;
+reg csr_we;
+// reg soft_int_gen;
 reg [31:0] exe_out;
 reg [1:0] mm_access_sz;
 reg [31:0] mm_addr;
@@ -97,6 +105,9 @@ always @(posedge clk ) begin
         csr_wdata <= 32'b0;
         csr_wmask <= 32'b0;
         csr_addr <= 32'b0;
+        csr_re <= 1'b0;
+        csr_we <= 1'b0;
+        // soft_int_gen <= 1'b0;
         exe_out <= 32'b0;
         mm_access_sz <= 3'b0;
         mm_addr <= 32'b0;
@@ -122,6 +133,9 @@ always @(posedge clk ) begin
         csr_wdata <= flush ? 0 : ex_csr_wdata;
         csr_wmask <= flush ? 0 : ex_csr_wmask;
         csr_addr <= flush ? 0 : ex_csr_addr;
+        csr_re <= flush ? 0 : ex_csr_re;
+        csr_we <= flush ? 0 : ex_csr_we;
+        // soft_int_gen <= flush ? 0 : ex_soft_int_gen;
         exe_out <= flush ? 0 : ex_exe_out;
         mm_access_sz <= ex_mm_access_sz;
         mm_addr <= ex_mm_addr;
