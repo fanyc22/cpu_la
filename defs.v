@@ -5,7 +5,7 @@
 `define OP_TYPE_CSR 4'd4
 `define OP_TYPE_U12I 4'd5
 `define OP_TYPE_RDCNT 4'd6
-`define OP_TYPE_ETRN 4'd8
+`define OP_TYPE_ERTN 4'd8
 
 `define OP_TYPE_INVALID 4'd0
 
@@ -68,8 +68,8 @@
 `define OP_RDCNTID 8'd49
 `define OP_RDCNTVL 8'd50
 `define OP_RDCNTVH 8'd51
-//etrn
-`define OP_ETRN 8'd52
+//ertn
+`define OP_ERTN 8'd52
 
 `define OP_INVALID 8'd0
 
@@ -116,6 +116,8 @@
 `define CSR_ECFG_LIE90  9 :0
 `define CSR_ESTAT_IS10  1 :0
 `define CSR_ESTAT_IS    9 :0
+`define CSR_ESTAT_ECODE 21:16
+`define CSR_ESTAT_ESUBCODE 31:22
 `define CSR_ERA_PC      31:0
 `define CSR_EENTRY_VADDR   31:6
 `define CSR_SAVE_DATA   31:0
@@ -167,4 +169,4 @@
 
 `define ESUBCODE_ADEF   9'b00
 
-`define CSR_REG_SIZE 64
+`define CSR_REG_SIZE 128

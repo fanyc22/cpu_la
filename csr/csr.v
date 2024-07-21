@@ -1,4 +1,4 @@
-`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
 module csr (
 //output
             csr_rdata,
@@ -66,6 +66,7 @@ always @(posedge clk) begin
         csr_reg[`CSR_ESTAT] <= 32'h0000_0000;
         csr_reg[`CSR_TCFG] <= 32'h0000_0000;
         csr_reg[`CSR_LLBCTL] <= 32'h0000_0000;
+        csr_reg[`CSR_TICLR ] <= 32'h0000_0000;
     end
     else if(wb_exception) begin
         csr_reg[`CSR_PRMD][`CSR_PRMD_PPLV] <= csr_reg[`CSR_CRMD][`CSR_CRMD_PLV];
@@ -84,17 +85,7 @@ always @(posedge clk) begin
     else if(csr_we) begin
         csr_reg[csr_addr] <= csr_wdata & csr_wmask;
     end
-end
 
-always @(*) begin
-    csr_rdata = csr_reg[csr_addr];
-end
-
-always @(*) begin
-    interrupt = (&(csr_reg[`CSR_ESTAT][`CSR_ESTAT_IS] & csr_reg[`CSR_ECFG][`CSR_ECFG_LIE90])) && (csr_reg[`CSR_CRMD][`CSR_CRMD_IE]);
-end
-
-always @(posedge clk) begin
     if(csr_reg[`CSR_TCFG][`CSR_TCFG_EN]) begin
         if(csr_reg[`CSR_TVAL]==0) begin
             csr_reg[`CSR_ESTAT][11] <= 1;
@@ -107,6 +98,16 @@ always @(posedge clk) begin
         end
     end
 end
+
+always @(*) begin
+    csr_rdata = csr_reg[csr_addr];
+end
+
+always @(*) begin
+    interrupt = (&(csr_reg[`CSR_ESTAT][`CSR_ESTAT_IS] & csr_reg[`CSR_ECFG][`CSR_ECFG_LIE90])) && (csr_reg[`CSR_CRMD][`CSR_CRMD_IE]);
+end
+
+
 
 always @(*) begin
     timer_id <= csr_reg[`CSR_TID];

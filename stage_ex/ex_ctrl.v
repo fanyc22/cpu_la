@@ -1,10 +1,10 @@
-`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
 
 module ex_ctrl (
 //output
         // mm_access_op,
         ex_ale,
-        ex_etrn,
+        ex_ertn,
         mm_access_sz,
         mm_re,
         mm_we,
@@ -43,7 +43,7 @@ input wire [19:0] u12imm;
 
 // output reg [2:0] mm_access_op;
 output reg ex_ale;
-output reg ex_etrn;
+output reg ex_ertn;
 output reg [2:0] mm_access_sz;
 output reg [31:0] mm_addr;
 output reg [31:0] exe_out;
@@ -54,7 +54,7 @@ output reg [31:0] mm_wdata;
 output reg reg_d_wen;
 
 always @(*) begin
-    ex_etrn = op == `OP_ETRN;
+    ex_ertn = op == `OP_ERTN;
 end
 
 always @(*) begin

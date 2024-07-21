@@ -1,4 +1,4 @@
-`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
 
 module core (
 //output
@@ -85,9 +85,9 @@ wire [31:0] if1_branch_address;
 wire [31:0] if2_inst;
 wire if2_icache_hit;
 
-wire id_sys,
-wire id_brk,
-wire id_ine,
+wire id_sys;
+wire id_brk;
+wire id_ine;
 wire [14:0] id_sbcode;
 wire [31:0] id_rj_from_gr;
 wire [31:0] id_rk_from_gr;
@@ -131,11 +131,11 @@ wire [31:0] ex_mm_wdata;
 wire ex_branch;
 wire [31:0] ex_pc_branch;
 wire ex_reg_d_wen;
-wire [4:0] ex_reg_d;
-wire [31:0] ex_csr_wmask;
-wire ex_flush_before;
+reg [4:0] ex_reg_d;
+reg [31:0] ex_csr_wmask;
+reg ex_flush_before;
 wire ex_interrupt;
-wire ex_etrn;
+wire ex_ertn;
 wire ex_ale;
 
 wire [31:0] mm2_rdata;
@@ -147,10 +147,11 @@ wire [8:0] mm2_esubcode;
 wire [4:0] wb_gr_waddr;
 wire [31:0] wb_gr_wdata;
 wire [31:0] wb_csr_rdata;
-wire wb_exception;
+reg wb_exception;
 wire [31:0] wb_exception_entry;
 wire [31:0] wb_exception_return_entry;
-wire [31:0] wb_entry;
+reg [31:0] wb_entry;
+reg [31:0] wb_gr_wdata_include_csr;
 
 wire [63:0] csr_timer;
 wire [31:0] csr_timer_id;
@@ -282,6 +283,10 @@ reg_if2_id if2_id(
             .if2_branch_bp(if1_if2.branch_bp),
             .if1_if2_cache_valid(if1_if2.cache_valid));
 
+always @(*) begin
+    wb_gr_wdata_include_csr = mm2_wb.op_type == `OP_TYPE_CSR ? wb_csr_rdata : wb_gr_wdata;
+end
+
 gr U_gr(
             .rdata1(id_rj_from_gr),
             .rdata2(id_rk_from_gr),
@@ -290,7 +295,7 @@ gr U_gr(
             .rst_n(rst_n),
             .we(mm2_wb.reg_d_wen),
             .waddr(wb_gr_waddr),
-            .wdata(wb_gr_wdata),
+            .wdata(wb_gr_wdata_include_csr),
             .raddr1(id_reg_j),
             .raddr2(id_reg_k),
             .raddr3(id_reg_d));
@@ -298,7 +303,7 @@ gr U_gr(
 assign debug_wb_pc = mm2_wb.pc;
 assign debug_wb_rf_we = {4{mm2_wb.reg_d_wen}};
 assign debug_wb_rf_wnum = wb_gr_waddr;
-assign debug_wb_rf_wdata = wb_gr_wdata;
+assign debug_wb_rf_wdata = wb_gr_wdata_include_csr;
 
 decoder U_decoder(
             .id_sys(id_sys),
@@ -448,7 +453,7 @@ ex_ctrl U_ex_ctrl(
             .ex_access_sz(id_ex.access_sz),
             .ex_rd_from_fwd(id_ex.rd_from_fwd),
             .ex_ale(ex_ale),
-            .ex_etrn(ex_etrn),
+            .ex_ertn(ex_ertn),
             .mm_access_sz(ex_mm_access_sz),
             .mm_addr(ex_mm_addr),
             .exe_out(ex_exe_out),
@@ -462,21 +467,21 @@ ex_ctrl U_ex_ctrl(
 
 always @(*) begin
     ex_reg_d <= (id_ex.op == `OP_RDCNTID) ? id_ex.reg_j : id_ex.reg_d;
-    ex_csr_wmask <= (id_ex.op == `OP_CSRXCHG) ? 32'd1 : id_ex.id_rj_from_fwd;
-    ex_flush_before <= id_ex.adef &
-                        id_ex.sys &
-                        id_ex.brk &
-                        id_ex.ine &
-                        ex_interrupt &
-                        ex_ale &
-                        ex_etrn;
+    ex_csr_wmask <= (id_ex.op == `OP_CSRXCHG) ? id_ex.id_rj_from_fwd : 32'd1;
+    ex_flush_before <= id_ex.adef |
+                        id_ex.sys |
+                        id_ex.brk |
+                        id_ex.ine |
+                        ex_interrupt |
+                        ex_ale |
+                        ex_ertn;
 end
 
 reg_ex_mm1 ex_mm1(
             .clk(clk),
             .rst_n(rst_n),
             .wen(ex_mm1_wen),
-            .ex_csr_wdata(id_ex.id_rd_from_fwd),
+            .ex_csr_wdata(id_ex.rd_from_fwd),
             .ex_csr_wmask(ex_csr_wmask),
             .ex_csr_addr(id_ex.csr_addr),
             .flush(ex_mm1_flush),
@@ -485,7 +490,7 @@ reg_ex_mm1 ex_mm1(
             .ex_brk(id_ex.brk),
             .ex_ine(id_ex.ine),
             .ex_ale(ex_ale),
-            .ex_etrn(ex_etrn),
+            .ex_ertn(ex_ertn),
             .ex_interrupt(ex_interrupt),
             .ex_sbcode(id_ex.sbcode),
             .ex_flush_before(ex_flush_before),
@@ -533,7 +538,7 @@ reg_mm1_mm2 mm1_mm2(
             .mm1_ine(ex_mm1.ine),
             .mm1_ale(ex_mm1.ale),
             .mm1_interrupt(ex_mm1.interrupt),
-            .mm1_etrn(ex_mm1.etrn),
+            .mm1_ertn(ex_mm1.ertn),
             .mm1_sbcode(ex_mm1.sbcode),
             .mm1_flush_before(ex_mm1.flush_before),
             .mm1_csr_wdata(ex_mm1.csr_wdata),
@@ -575,7 +580,7 @@ reg_mm2_wb mm2_wb(
             .mm2_ine(mm1_mm2.ine),
             .mm2_ale(mm1_mm2.ale),
             .mm2_interrupt(mm1_mm2.interrupt),
-            .mm2_etrn(mm1_mm2.etrn),
+            .mm2_ertn(mm1_mm2.ertn),
             .mm2_sbcode(mm1_mm2.sbcode),
             .mm2_flush_before(mm1_mm2.flush_before),
             .mm2_csr_wdata(mm1_mm2.csr_wdata),
@@ -592,7 +597,7 @@ reg_mm2_wb mm2_wb(
             .mm2_pc(mm1_mm2.pc));
 
 always @(*) begin
-    wb_exception = (mm2_wb.flush_before || !mm2_wb.etrn);
+    wb_exception = (mm2_wb.flush_before && !mm2_wb.ertn);
 end
 
 csr U_csr(
@@ -602,10 +607,10 @@ csr U_csr(
             .csr_addr(mm2_wb.csr_addr),
             .csr_wdata(mm2_wb.csr_wdata),
             .csr_wmask(mm2_wb.csr_wmask),
-            .etrn_flush(mm2_wb.etrn),
-            .csr_exception(wb_exception),
-            .csr_ecode(mm2_wb.ecode),
-            .csr_esubcode(mm2_wb.esubcode),
+            .ertn_flush(mm2_wb.ertn),
+            .wb_exception(wb_exception),
+            .wb_ecode(mm2_wb.ecode),
+            .wb_esubcode(mm2_wb.esubcode),
             .wb_vaddr(mm2_wb.mm_addr),
             .wb_pc(mm2_wb.pc),
             .csr_rdata(wb_csr_rdata),
@@ -616,7 +621,7 @@ csr U_csr(
             .exception_return_entry(wb_exception_return_entry));
 
 always @(*) begin
-    wb_entry = op == `OP_ETRN ? wb_exception_return_entry : wb_exception_entry;
+    wb_entry = mm2_wb.op == `OP_ERTN ? wb_exception_return_entry : wb_exception_entry;
 end
 
 regwrite U_regwrite(

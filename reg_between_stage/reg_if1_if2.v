@@ -1,4 +1,4 @@
-`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
 module reg_if1_if2 (
 //output
 
@@ -35,7 +35,7 @@ always @(posedge clk ) begin
     end
     else if(wen) begin
         pc <= flush ? 0 : if1_pc;
-        cache_valid <= !flush || !if1_adef;
+        cache_valid <= !flush && !if1_adef;
         flushed <= flush;
         branch_bp <= flush ? 0 : if1_branch_bp;
         adef <= flush ? 0 : if1_adef;

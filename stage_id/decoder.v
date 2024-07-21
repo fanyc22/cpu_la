@@ -1,4 +1,4 @@
-`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
 
 module decoder (
 //output
@@ -57,7 +57,7 @@ wire [7:0] op_atomic;
 wire [7:0] op_csr;
 wire [7:0] op_u12i;
 wire [7:0] op_rdcnt;
-reg [7:0] op_etrn;
+reg [7:0] op_ertn;
 
 always@(*) begin
     reg_d <= inst[4:0];
@@ -120,9 +120,9 @@ decoder_rdcnt U_decoder_rdcnt(
 
 always @(*) begin
     if(inst == 32'b00000110_01001000_00111000_00000000)
-        op_etrn = `OP_ETRN;
+        op_ertn = `OP_ERTN;
     else
-        op_etrn = `OP_INVALID;
+        op_ertn = `OP_INVALID;
 end
 
 always @(*) begin
@@ -147,8 +147,8 @@ always @(*) begin
     else if(op_rdcnt != `OP_INVALID) begin
         op_type = `OP_TYPE_RDCNT;
     end
-    else if(op_etrn != `OP_INVALID) begin
-        op_type = `OP_TYPE_ETRN;
+    else if(op_ertn != `OP_INVALID) begin
+        op_type = `OP_TYPE_ERTN;
     end
     else begin
         op_type = `OP_TYPE_INVALID;
@@ -164,7 +164,7 @@ always @(*) begin
         `OP_TYPE_CSR: op = op_csr;
         `OP_TYPE_U12I: op = op_u12i;
         `OP_TYPE_RDCNT: op = op_rdcnt;
-        `OP_TYPE_ETRN: op = op_etrn;
+        `OP_TYPE_ERTN: op = op_ertn;
         default: op = `OP_INVALID;
     endcase
 end

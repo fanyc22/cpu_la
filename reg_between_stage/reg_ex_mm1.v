@@ -1,4 +1,4 @@
-`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
 module reg_ex_mm1 (
 //output
 
@@ -12,7 +12,7 @@ module reg_ex_mm1 (
             ex_brk,
             ex_ine,
             ex_ale,
-            ex_etrn,
+            ex_ertn,
             ex_interrupt,
             ex_sbcode,
             ex_flush_before,
@@ -40,7 +40,7 @@ input wire ex_sys;
 input wire ex_brk;
 input wire ex_ine;
 input wire ex_ale;
-input wire ex_etrn;
+input wire ex_ertn;
 input wire ex_interrupt;
 input wire [14:0] ex_sbcode;
 input wire ex_flush_before;
@@ -64,7 +64,7 @@ reg sys;
 reg brk;
 reg ine;
 reg ale;
-reg etrn;
+reg ertn;
 reg interrupt;
 reg [14:0] sbcode;
 reg flush_before;
@@ -90,7 +90,7 @@ always @(posedge clk ) begin
         brk <= 1'b0;
         ine <= 1'b0;
         ale <= 1'b0;
-        etrn <= 1'b0;
+        ertn <= 1'b0;
         interrupt <= 1'b0;
         sbcode <= 15'b0;
         flush_before <= 1'b0;
@@ -115,7 +115,7 @@ always @(posedge clk ) begin
         brk <= flush ? 0 : ex_brk;
         ine <= flush ? 0 : ex_ine;
         ale <= flush ? 0 : ex_ale;
-        etrn <= flush ? 0 : ex_etrn;
+        ertn <= flush ? 0 : ex_ertn;
         interrupt <= flush ? 0 : ex_interrupt;
         sbcode <= flush ? 0 : ex_sbcode;
         flush_before <= flush ? 0 : ex_flush_before;

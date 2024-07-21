@@ -1,4 +1,4 @@
-`include "C:\Users\Lenovo\Desktop\cdp_ede_local-master\mycpu_env\myCPU\defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
 module reg_mm2_wb (
 //output
 
@@ -16,7 +16,7 @@ module reg_mm2_wb (
             mm2_ine,
             mm2_ale,
             mm2_interrupt,
-            mm2_etrn,
+            mm2_ertn,
             mm2_sbcode,
             mm2_flush_before,
             mm2_csr_wdata,
@@ -45,7 +45,7 @@ input wire mm2_brk;
 input wire mm2_ine;
 input wire mm2_ale;
 input wire mm2_interrupt;
-input wire mm2_etrn;
+input wire mm2_ertn;
 input wire [14:0] mm2_sbcode;
 input wire mm2_flush_before;
 input wire [31:0] mm2_csr_wdata;
@@ -70,7 +70,7 @@ reg brk;
 reg ine;
 reg ale;
 reg interrupt;
-reg etrn;
+reg ertn;
 reg [14:0] sbcode;
 reg flush_before;
 reg [31:0] csr_wdata;
@@ -97,7 +97,7 @@ always @(posedge clk ) begin
         ine <= 1'b0;
         ale <= 1'b0;
         interrupt <= 1'b0;
-        etrn <= 1'b0;
+        ertn <= 1'b0;
         sbcode <= 15'b0;
         flush_before <= 1'b0;
         csr_wdata <= 32'b0;
@@ -123,7 +123,7 @@ always @(posedge clk ) begin
         ine <= mm2_ine;
         ale <= mm2_ale;
         interrupt <= mm2_interrupt;
-        etrn <= mm2_etrn;
+        ertn <= mm2_ertn;
         sbcode <= mm2_sbcode;
         flush_before <= mm2_flush_before;
         csr_wdata <= mm2_csr_wdata;
