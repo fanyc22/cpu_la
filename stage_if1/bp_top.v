@@ -33,6 +33,7 @@ module bp_top(
         branched, // 分支且执行
         ex_answ_bht, // ex的BHT的预测结果
         ex_answ_ghr, // ex的GHR的预测结果
+        ex_answ, // ex的指令在当时的预测结果
         we, // 写使能，是否更新BHT和BTB和GHR，是不是分支指令
         clk,
         rst_n
@@ -63,6 +64,7 @@ module bp_top(
     input wire branched;
     input wire ex_answ_bht;
     input wire ex_answ_ghr;
+    input wire ex_answ;
 
     output wire [31:0] target;
     output wire answ;
@@ -129,6 +131,27 @@ module bp_top(
              .ex_answ_bht(ex_answ_bht),
              .ex_answ_ghr(ex_answ_ghr)
          );
+
+
+    integer bht_succ_times, ghr_succ_times, succ_times, total_times, branch_take_times, branch_inst_num;
+    always @(posedge clk) begin
+        if(!rst_n) begin
+            bht_succ_times <= 0;
+            ghr_succ_times <= 0;
+            succ_times <= 0;
+            total_times <= 0;
+            branch_take_times <= 0;
+            branch_inst_num <= 0;
+        end
+        else begin
+            bht_succ_times <= bht_succ_times + (ex_answ_bht == branched);
+            ghr_succ_times <= ghr_succ_times + (ex_answ_ghr == branched);
+            succ_times <= succ_times + (ex_answ == branched);
+            total_times <= total_times + 1;
+            branch_take_times <= branch_take_times + branched;
+            branch_inst_num <= branch_inst_num + we;
+        end
+    end
 
 
 endmodule
