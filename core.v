@@ -303,6 +303,7 @@ module core (
                .branched(ex_branch),
                .ex_answ_bht(id_ex.ex_answ_bht),
                .ex_answ_ghr(id_ex.ex_answ_ghr),
+               .ex_answ(id_ex.branch_bp),
                .we(id_ex.is_branch),
                .target(if1_branch_address),
                .answ(if1_branch_taken),

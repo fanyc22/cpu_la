@@ -75,14 +75,14 @@
 
 `define ACCESS_SZ_BYTE 2'b00
 `define ACCESS_SZ_HALF 2'b01
-`define ACCESS_SZ_WORD 2'b10    
+`define ACCESS_SZ_WORD 2'b10
 `define ACCESS_SZ_INVALID 2'b11
 
 `define BTB_NN 2'd0
 `define BTB_NB 2'd1
 `define BTB_BN 2'd2
 `define BTB_BB 2'd3
- 
+
 `define BTB_WIDTH 35 //validbit:1,predictbit:2,target:32
 `define VALID_BIT 34
 `define PREDICT_BIT 33:32
@@ -163,12 +163,12 @@
 
 `define ECODE_INT       6'h00
 `define ECODE_ADE       6'h08   // ADEM: esubcode=1; ADEF: esubcode=0
-`define ECODE_ALE       6'h09   
+`define ECODE_ALE       6'h09
 `define ECODE_SYS       6'h0B
-`define ECODE_BRK       6'h0C   
+`define ECODE_BRK       6'h0C
 `define ECODE_INE       6'h0D
 `define ECODE_TLBR      6'h3F
 
 `define ESUBCODE_ADEF   9'b00
 
-`define CSR_REG_SIZE 128
+`define CSR_REG_SIZE 4096
