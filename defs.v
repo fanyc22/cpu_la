@@ -172,3 +172,13 @@
 `define ESUBCODE_ADEF   9'b00
 
 `define CSR_REG_SIZE 4096
+
+`define CACHE_N       2
+`define CACHE_H       256
+`define CACHE_W       4
+`define CACHE_LOG_H   8
+`define CACHE_LOG_W   2
+`define CACHE_TAG_LEN 20
+
+`define CACHE_OP_RD  0
+`define CACHE_OP_WR  1

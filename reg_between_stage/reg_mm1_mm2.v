@@ -25,6 +25,7 @@ module reg_mm1_mm2 (
             mm1_mm_access_sz,
             mm1_mm_addr,
             mm1_mm_re,
+            mm1_mm_we,
             mm1_reg_d,
             mm1_op,
             mm1_op_type,
@@ -53,6 +54,7 @@ input wire [31:0] mm1_exe_out;
 input wire [1:0] mm1_mm_access_sz;
 input wire [31:0] mm1_mm_addr;
 input wire mm1_mm_re;
+input wire mm1_mm_we;
 input wire [4:0] mm1_reg_d;
 input wire [7:0] mm1_op;
 input wire [3:0] mm1_op_type;
@@ -77,6 +79,7 @@ reg [31:0] exe_out;
 reg [1:0] mm_access_sz;
 reg [31:0] mm_addr;
 reg mm_re;
+reg mm_we;
 reg [4:0] reg_d;
 reg [7:0] op;
 reg [3:0] op_type;
@@ -103,6 +106,7 @@ always @(posedge clk ) begin
         mm_access_sz <= 3'b0;
         mm_addr <= 2'b0;
         mm_re <= 1'b0;
+        mm_we <= 1'b0;
         reg_d <= 5'b0;
         op <= 8'b0;
         op_type <= 3'b0;
@@ -128,6 +132,7 @@ always @(posedge clk ) begin
         mm_access_sz <= mm1_mm_access_sz;
         mm_addr <= mm1_mm_addr;
         mm_re <= mm1_mm_re;
+        mm_we <= mm1_mm_we;
         reg_d <= mm1_reg_d;
         op <= mm1_op;
         op_type <= mm1_op_type;

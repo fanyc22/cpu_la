@@ -22,6 +22,9 @@ module hazard_ctrl (
         pc_is_wrong,
         pc_correct,
 //input
+        icache_miss,
+        dcache_miss,
+
         ex_flush_before,
         mm1_flush_before,
         mm2_flush_before,
@@ -60,6 +63,9 @@ module hazard_ctrl (
         wb_reg_d_wen,
         wb_reg_d,
         wb_csr_re);
+
+input wire icache_miss;
+input wire dcache_miss;
 
 input wire ex_flush_before;
 input wire mm1_flush_before;
@@ -253,7 +259,27 @@ always @(*) begin
 end
 
 always @(*) begin
-    if(ex_flush_before | mm1_flush_before | mm2_flush_before | wb_flush_before) begin
+    if(dcache_miss) begin
+        pc_wen <= 0;
+        pc_is_wrong <= 0;
+        pc_correct <= 32'h0;
+
+        if1_if2_flush <= 0;
+        if2_id_flush <= 0;
+        id_ex_flush <= 0;
+        ex_mm1_flush <= 0;
+        mm1_mm2_flush <= 0;
+        mm2_wb_flush <= 1;
+
+        if1_if2_wen <= 0;
+        if2_id_wen <= 0;
+        id_ex_wen <= 0;
+        id_ex_bp_flush <= 0;
+        ex_mm1_wen <= 0;
+        mm1_mm2_wen <= 0;
+        mm2_wb_wen <= 1;
+    end
+    else if(ex_flush_before | mm1_flush_before | mm2_flush_before | wb_flush_before) begin
         if(wb_flush_before) begin
             pc_wen <= 1;
             pc_is_wrong <= 1;
@@ -431,6 +457,26 @@ always @(*) begin
         if2_id_wen <= 1;
         id_ex_wen <= 1;
         id_ex_bp_flush <= 1;
+        ex_mm1_wen <= 1;
+        mm1_mm2_wen <= 1;
+        mm2_wb_wen <= 1;
+    end
+    else if(icache_miss) begin
+        pc_wen <= 0;
+        pc_is_wrong <= 0;
+        pc_correct <= 32'h0;
+
+        if1_if2_flush <= 0;
+        if2_id_flush <= 1;
+        id_ex_flush <= 0;
+        ex_mm1_flush <= 0;
+        mm1_mm2_flush <= 0;
+        mm2_wb_flush <= 0;
+
+        if1_if2_wen <= 0;
+        if2_id_wen <= 1;
+        id_ex_wen <= 1;
+        id_ex_bp_flush <= 0;
         ex_mm1_wen <= 1;
         mm1_mm2_wen <= 1;
         mm2_wb_wen <= 1;
