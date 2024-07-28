@@ -55,7 +55,8 @@ always @(posedge clk) begin
         icache_re <= 1;
     end
     else begin
-        icache_re <= pc_wen;
+        // icache_re <= pc_wen;
+        icache_re <= 1;
     end
 end
 

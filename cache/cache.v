@@ -16,6 +16,8 @@ module cache(
     wsize,
     wdata,    
 //output to CPU
+    raddr_out,
+    raddr_valid,
     rdata,
     rdata_valid,
     wdata_valid,
@@ -41,11 +43,11 @@ module cache(
 `CACHE_STATE_IDLE
 `CACHE_STATE_RW
 `CACHE_STATE_MISS
-`CACHE_STATE_REFILL */
+`CACHE_STATE_MISS */
 // parameter   `CACHE_STATE_IDLE    =3'b000;
 // parameter   `CACHE_STATE_RW      =3'b001;
 // parameter   `CACHE_STATE_MISS    =3'b010;
-// parameter   `CACHE_STATE_REFILL  =3'b011;
+// parameter   `CACHE_STATE_MISS  =3'b011;
 // parameter   `CACHE_WRBUF_IDLE =1'b0;
 // parameter   `CACHE_WRBUF_WRITE=1'b1;
 
@@ -58,6 +60,8 @@ input  wire  [31:0] addr;
 input  wire  [ 1:0] wsize;
 input  wire  [31:0] wdata;
 //output to CPU
+output wire         raddr_valid;
+output wire  [31:0] raddr_out;
 output wire         rdata_valid;
 output wire         wdata_valid;
 output wire [31:0]  rdata;
@@ -67,7 +71,7 @@ output wire [ 2:0]  rd_type; //3'b000-BYTE  3'b001-HALFWORD 3'b010-WORD 3'b100�
 output wire [31:0]  rd_addr; //
 input  wire         rd_rdy; //RAM准备好被cache读取
 input  wire         ret_valid; //RAM被cache读取有效
-input  wire         ret_last;  //RAM读取完成
+input  wire         ret_last; //RA取完成
 input  wire [31:0]  ret_data;//
 //write to RAM
 output wire         wr_req;     //cache向RAM请求写入之
@@ -78,9 +82,11 @@ output wire [2:0]   wr_size;
 output wire[127:0]  wr_data;  //    
 input  wire         wr_rdy; //RAM准备好被cache写入
 
-assign rd_req = (state == `CACHE_STATE_IDLE || state == `CACHE_STATE_RW) && valid && (!hit) && (!op);
+assign raddr_valid = rd_rdy;
+
+assign rd_req = (state == `CACHE_STATE_IDLE || state == `CACHE_STATE_RW) && valid && (!hit);
 assign rd_type = 3'b100;
-assign rd_addr = addr;
+assign rd_addr = {addr[31:4],4'b0};
 
 wire [`CACHE_LOG_H-1:0]        index;
 wire [`CACHE_LOG_W+1:0]        offset;
@@ -99,6 +105,9 @@ wire [`CACHE_N-1:0]  tag_hit;
 wire hit;
 wire [`CACHE_LOG_N-1:0] hit_way;
 wire dirty;
+
+reg [31:0]  rdata_buf;
+reg         rdata_from_buf;
 
 /*cache的存储空间分为：
 标签存储（tag_ram）：一读读一组N个
@@ -125,24 +134,22 @@ tag_ram my_tag_ram(
 
 //V位和D位
 
-genvar i,j;
-
-generate
-     for(i=0;i<`CACHE_H;i=i+1)begin
-         for(j=0;j<`CACHE_N;j=j+1)begin
-             always @(posedge clk) begin
-                 if (~resetn) begin
-                     tag_dirty[i][j] <= 0;
-                     tag_valid[i][j] <= 0;
-                 end
-                 else begin
-                     tag_valid[index][hit_way] <= ((state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid&&op)||(state==`CACHE_STATE_REFILL&&ret_valid&&ret_last);
-                     tag_dirty[index][hit_way] <= (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid&&op;
-                 end
-             end
-         end
-     end    
-endgenerate
+integer i;
+integer j;
+always @(posedge clk) begin
+    if(!resetn) begin
+        for(i=0;i<`CACHE_H;i=i+1)begin
+            for(j=0;j<`CACHE_N;j=j+1)begin
+                tag_valid[i][j] <= 1'b0;
+                tag_dirty[i][j] <= 1'b0;
+            end
+        end
+    end
+    else if(tag_ram_we)begin
+        tag_valid[index][hit_way] <= ((state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid)||(state==`CACHE_STATE_MISS&&ret_valid&&ret_last);
+        tag_dirty[index][hit_way] <= (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid;
+    end
+end
 
 //Cache计数器,为了LRU算法
 reg   tag_count [`CACHE_H-1:0][`CACHE_N-1:0];
@@ -176,7 +183,7 @@ data_ram my_data_ram(
 //FSM
 
 always@(posedge clk)begin
-    if(~resetn)begin
+    if(!resetn)begin
         state <= `CACHE_STATE_IDLE;
     end
     else begin
@@ -185,25 +192,40 @@ always@(posedge clk)begin
 end
 
 always@(*) begin
-    if(valid)    
-        case(state)
-        `CACHE_STATE_IDLE:
-            if      (hit)   next_state = `CACHE_STATE_RW;
-            else if (op)    next_state = `CACHE_STATE_RW;
-            else            next_state = `CACHE_STATE_MISS;
-        `CACHE_STATE_RW:
-            if      (hit)   next_state = `CACHE_STATE_RW;
-            else if (op)    next_state = `CACHE_STATE_RW;
-            else            next_state = `CACHE_STATE_MISS;
-        `CACHE_STATE_MISS:
-            if (rdata_valid)      next_state = `CACHE_STATE_REFILL; 
-            else                  next_state = `CACHE_STATE_MISS;
-        `CACHE_STATE_REFILL:
-            if(ret_last)     next_state = `CACHE_STATE_IDLE;
-            else             next_state = `CACHE_STATE_REFILL;
-        endcase
-    else
+    case(state)
+    `CACHE_STATE_IDLE:
+        if      (valid & hit)   next_state = `CACHE_STATE_RW;
+        //else if (op)    next_state = `CACHE_STATE_RW;
+        else if (valid) begin
+            next_state = `CACHE_STATE_MISS;
+        end
+    `CACHE_STATE_RW:
+        if      (valid & hit)   next_state = `CACHE_STATE_RW;
+        //else if (op)    next_state = `CACHE_STATE_RW;
+        else if(valid) begin
+            next_state = `CACHE_STATE_MISS;
+        end
+        else begin
+            next_state = `CACHE_STATE_IDLE;
+        end
+    `CACHE_STATE_MISS:
+        if(ret_last)     next_state = `CACHE_STATE_RW;
+        else             next_state = `CACHE_STATE_MISS;
+    default:
         next_state = `CACHE_STATE_IDLE;
+    endcase
+end
+
+always @(posedge clk) begin
+    if(!resetn) begin
+        rdata_from_buf <= 1'b0;
+    end
+    else if(state == `CACHE_STATE_MISS && ret_last) begin
+        rdata_from_buf <= 1'b1;
+    end
+    else begin
+        rdata_from_buf <= 1'b0;
+    end
 end
 
 //cpubuf 
@@ -227,8 +249,16 @@ always @ (posedge clk) begin
 end
 assign   {op_r,valid_r,addr_r,wsize_r,wdata_r} = cpubuf;
 assign   {tag_r,index_r,offset_r} = addr_r;
+assign raddr_out = addr_r;
 
-
+always@(posedge clk) begin
+    if(!resetn) begin
+        rdata_buf <=32'b0;
+    end
+    else if((state == `CACHE_STATE_MISS) && ret_valid && (refill_count == offset_r[3:2])) begin
+        rdata_buf <=ret_data;
+    end
+end
 
 
 assign tag_ram_index = index;
@@ -249,19 +279,20 @@ assign hit        = tag_hit[0] || tag_hit[1] || tag_hit[2] || tag_hit[3];
 
 
 assign data_ram_index  = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )?index:index_r;
-assign data_ram_offset = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )?offset:refill_count;
+assign data_ram_offset = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )?offset[3:2]:refill_count;
 assign data_ram_way    = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )? hit_way : replace_way; 
-assign data_ram_we     = ((state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid&&op)||(state==`CACHE_STATE_REFILL&&ret_valid);
-assign data_ram_wdata  = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )?wdata:ret_data;
-assign data_valid      = state==`CACHE_STATE_RW && op_r;
-assign rdata           = (state==`CACHE_STATE_REFILL&&refill_count == offset_r)? data_ram_rdata : ret_data;
-assign rdata_valid     = (state==`CACHE_STATE_RW && ~op_r)||(state==`CACHE_STATE_REFILL&&refill_count == offset_r);
+assign data_ram_we     = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )?(valid && op):(state==`CACHE_STATE_MISS && ret_valid);
+assign data_ram_wdata  = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )?wdata:
+                            (refill_count == offset_r[3:2])? wdata_r :ret_data;
+// assign data_valid      = state==`CACHE_STATE_RW && op_r;
+assign rdata           = (rdata_from_buf)? rdata_buf : data_ram_rdata;
+assign rdata_valid     = state==`CACHE_STATE_RW && (~op_r||rdata_from_buf);
 assign tag_ram_index   = index;
 assign tag_ram_way     = replace_way;
-assign tag_ram_we      = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid&&~hit&&(op==1'b1);
+assign tag_ram_we      = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid&&(!hit);
 assign tag_ram_wdata   = tag;
 
-
+assign wdata_valid     = state == `CACHE_STATE_RW && op_r;
 /*
 if(state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW ) begin
     //tag比较
@@ -326,16 +357,16 @@ always @(posedge clk)begin
     if(!resetn)begin
         refill_count <= `CACHE_LOG_W'b0;
     end
-    else if(state==`CACHE_STATE_MISS && next_state == `CACHE_STATE_REFILL)begin
-        refill_count <= `CACHE_LOG_W'b0;
+    else if(state==`CACHE_STATE_MISS && ret_valid) begin
+        refill_count <= refill_count + 1'b1;
     end
-    else if(state == `CACHE_STATE_REFILL)begin
-        refill_count <=refill_count + 1'b1;
+    else begin
+        refill_count <= `CACHE_LOG_W'b0;
     end
 end
 
 /*
-if(state == `CACHE_STATE_REFILL)begin
+if(state == `CACHE_STATE_MISS)begin
     if(ret_valid)begin
         data_ram_we[refill_count] =1'b1;
         data_ram_index  = index_r;

@@ -101,6 +101,8 @@ reg [31:0] icache_wdata;
 wire icache_rdata_valid;
 wire icache_wdata_valid;
 wire [31:0] icache_rdata;
+wire [31:0] icache_raddr_out;
+wire icache_raddr_valid;
 
 reg dcache_op;
 reg dcache_valid;
@@ -146,6 +148,8 @@ core U_core (
             .inst_cache_waddr(inst_cache_waddr),
             .inst_cache_wdata(inst_cache_wdata),
             .inst_cache_access_sz(inst_cache_access_sz),
+            .icache_raddr_out(icache_raddr_out),
+            .icache_raddr_valid(icache_raddr_valid),
 
             .data_cache_re(data_cache_re),
             .data_cache_we(data_cache_we),
@@ -213,6 +217,8 @@ cache U_icache(
     .rdata(icache_rdata),
     .rdata_valid(icache_rdata_valid),
     .wdata_valid(icache_wdata_valid),
+    .raddr_out(icache_raddr_out),
+    .raddr_valid(icache_raddr_valid),
 
     .rd_req(icache_rd_req),
     .rd_type(icache_rd_type),

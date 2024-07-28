@@ -23,6 +23,8 @@ module core (
 //input
         inst_cache_rdata,
         inst_cache_hit,
+        icache_raddr_out,
+        icache_raddr_valid,
         data_cache_rdata,
         data_cache_hit,
         clk,
@@ -37,6 +39,9 @@ input wire [31:0] inst_cache_rdata;
 input wire inst_cache_hit;
 input wire [31:0] data_cache_rdata;
 input wire data_cache_hit;
+
+input wire [31:0] icache_raddr_out;
+input wire icache_raddr_valid;
 
 output reg inst_cache_re;
 output reg [31:0] inst_cache_raddr;
@@ -81,6 +86,7 @@ wire if1_adef;
 wire if1_icache_re;
 wire if1_branch_taken;
 wire [31:0] if1_branch_address;
+wire if1_cache_not_ready;
 
 // *******************
 // for bp
@@ -234,7 +240,8 @@ hazard_ctrl U_hazard_ctrl(
                 .wb_reg_d(wb_gr_waddr),
                 .wb_csr_re(mm2_wb.csr_re),
                 .icache_miss(if2_icache_miss),
-                .dcache_miss(mm2_dcache_miss));
+                .dcache_miss(mm2_dcache_miss),
+                .icache_not_ready(if1_cache_not_ready));
 
 pc U_pc(
         .pc_reg(if1_pc),
@@ -247,6 +254,8 @@ pc U_pc(
         .is_branch(if1_branch_taken),
         .branch_address(if1_branch_address),
         .icache_re(if1_icache_re));
+
+assign if1_cache_not_ready = (!icache_raddr_valid) && (if1_pc!=32'd0);
 
 // icache U_icache(
 //             .rdata(if2_inst),
@@ -262,8 +271,7 @@ pc U_pc(
 
 assign if2_inst = inst_cache_rdata;
 assign if2_icache_hit = inst_cache_hit;
-assign if2_icache_miss = ~inst_cache_hit & if1_if2.cache_valid;
-
+assign if2_icache_miss = (!inst_cache_hit | (icache_raddr_out != if1_if2.pc)) & if1_if2.cache_valid ;
 
 always @(*) begin
     inst_cache_re <= if1_icache_re;
@@ -649,7 +657,7 @@ reg_mm1_mm2 mm1_mm2(
                 .mm1_reg_d_wen(ex_mm1.reg_d_wen),
                 .mm1_pc(ex_mm1.pc));
 
-assign mm2_dcache_miss = ~data_cache_hit & (ex_mm1.mm_re | ex_mm1.mm_we);
+assign mm2_dcache_miss = ~data_cache_hit & (mm1_mm2.mm_re | mm1_mm2.mm_we);
 
 csr_ctrl U_csr_ctrl(
                 .mm2_csr_we(mm2_csr_we),

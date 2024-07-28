@@ -59,7 +59,7 @@ module BHT_PHTs(
     always @(posedge clk) begin
         if(!rst_n) begin
             for(i = 0; i < (1 << BHR_WIDTH); i = i + 1) begin
-                PHTs[i] <= 2'b10;
+                PHTs[i] <= 2'b01;
             end
         end
         else if(we) begin
