@@ -84,11 +84,11 @@
 `define BTB_BB 2'd3
 
 `define BTB_WIDTH 35 //validbit:1,predictbit:2,target:32
-`define VALID_BIT 34
-`define PREDICT_BIT 33:32
-`define HIGH_PREDICT_BIT 33
-`define LOW_PREDICT_BIT 32
-`define TARGET_BIT 31:0
+`define BTB_VALID_BIT 34
+`define BTB_PREDICT_BIT 33:32
+`define BTB_HIGH_PREDICT_BIT 33
+`define BTB_LOW_PREDICT_BIT 32
+`define BTB_TARGET_BIT 31:0
 
 `define IMM_SZ_8 3'd7
 `define IMM_SZ_12 3'd1
@@ -173,12 +173,20 @@
 
 `define CSR_REG_SIZE 4096
 
-`define CACHE_N       2
+`define CACHE_N       4
 `define CACHE_H       256
 `define CACHE_W       4
 `define CACHE_LOG_H   8
 `define CACHE_LOG_W   2
+`define CACHE_LOG_N   2
 `define CACHE_TAG_LEN 20
 
 `define CACHE_OP_RD  0
 `define CACHE_OP_WR  1
+
+`define CACHE_STATE_IDLE 3'b000
+`define CACHE_STATE_RW  3'b001
+`define CACHE_STATE_MISS 3'b010
+`define CACHE_STATE_REFILL 3'b011
+`define CACHE_WRBUF_IDLE 1'b0
+`define CACHE_WRBUF_WRITE 1'b1

@@ -1,6 +1,7 @@
-`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/myCPU/defs.v"
 
 module mycpu_top(
+    input  [7:0] ext_int,
     input  aclk   ,
     input  aresetn,
     // read req channel
@@ -53,16 +54,16 @@ module mycpu_top(
 
 wire inst_cache_re;
 wire [31:0] inst_cache_raddr;
-wire [31:0] inst_cache_rdata;
-wire inst_cache_hit;
+reg [31:0] inst_cache_rdata;
+reg inst_cache_hit;
 wire inst_cache_we;
 wire [31:0] inst_cache_waddr;
 wire [31:0] inst_cache_wdata;
 wire [1:0] inst_cache_access_sz;
 wire data_cache_re;
 wire [31:0] data_cache_raddr;
-wire [31:0] data_cache_rdata;
-wire data_cache_hit;
+reg [31:0] data_cache_rdata;
+reg data_cache_hit;
 wire data_cache_we;
 wire [31:0] data_cache_waddr;
 wire [31:0] data_cache_wdata;
@@ -87,25 +88,25 @@ wire [31:0] dcache_ret_data;
 wire dcahce_wr_req;
 wire [2:0] dcache_wr_type;
 wire [31:0] dcache_wr_addr;
-wire [3:0] dache_wr_wstrb;
+wire [3:0] dcache_wr_wstrb;
 wire [127:0] dcache_wr_data;
 wire dcache_wr_rdy;
 
-wire icache_op;
-wire icache_valid;
-wire [31:0] icache_addr;
-wire [1:0] icache_wsize;
-wire [31:0] icache_wdata;
+reg icache_op;
+reg icache_valid;
+reg [31:0] icache_addr;
+reg [1:0] icache_wsize;
+reg [31:0] icache_wdata;
 
 wire icache_rdata_valid;
 wire icache_wdata_valid;
 wire [31:0] icache_rdata;
 
-wire dcache_op;
-wire dcache_valid;
-wire [31:0] dcache_addr;
-wire [1:0] dcache_wsize;
-wire [31:0] dcache_wdata;
+reg dcache_op;
+reg dcache_valid;
+reg [31:0] dcache_addr;
+reg [1:0] dcache_wsize;
+reg [31:0] dcache_wdata;
 
 wire dcache_rdata_valid;
 wire dcache_wdata_valid;
@@ -127,7 +128,7 @@ end
 always @(*) begin
     dcache_valid <= data_cache_re | data_cache_we;
     dcache_op <= data_cache_re ? `CACHE_OP_RD : `CACHE_OP_WR;
-    dcache_addr <= dcache_re ? data_cache_raddr : data_cache_waddr;
+    dcache_addr <= data_cache_re ? data_cache_raddr : data_cache_waddr;
     dcache_wsize <= data_cache_access_sz;
     dcache_wdata <= data_cache_wdata;
 end
@@ -162,8 +163,8 @@ core U_core (
             .inst_cache_hit(inst_cache_hit),
             .data_cache_rdata(data_cache_rdata),
             .data_cache_hit(data_cache_hit),
-            .clk(clk),
-            .rst_n(resetn));
+            .clk(aclk),
+            .rst_n(aresetn));
 
 // fakecache U_fakecache_inst(
 //             .clk(clk),
@@ -219,7 +220,7 @@ cache U_icache(
     .rd_rdy(icache_rd_rdy),
     .ret_valid(icache_ret_valid),
     .ret_last(icache_ret_last),
-    .ret_data(icache_ret_data)
+    .ret_data(icache_ret_data),
 
     .wr_req(),
     .wr_type(),
@@ -255,12 +256,12 @@ cache U_dcache(
     .wr_req(dcahce_wr_req),
     .wr_type(dcache_wr_type),
     .wr_addr(dcache_wr_addr),
-    .wr_wstrb(dache_wr_wstrb),
+    .wr_wstrb(dcache_wr_wstrb),
     .wr_data(dcache_wr_data),
     .wr_rdy(dcache_wr_rdy)
 );
 
-axi_bridge(
+axi_bridge U_axi_bridge(
     .aclk(aclk),
     .aresetn(aresetn),
     // read req channel
@@ -303,7 +304,7 @@ axi_bridge(
     .bid(bid),
     .bresp(bresp),
     .bvalid(bvalid),
-    .bready(bready)
+    .bready(bready),
     // icache rd interface
     .icache_rd_req(icache_rd_req),
     .icache_rd_type(icache_rd_type),
@@ -324,7 +325,7 @@ axi_bridge(
     .dcache_wr_req(dcahce_wr_req),
     .dcache_wr_type(dcache_wr_type),
     .dcache_wr_addr(dcache_wr_addr),
-    .dache_wr_wstrb(dache_wr_wstrb),
+    .dcache_wr_wstrb(dcache_wr_wstrb),
     .dcache_wr_data(dcache_wr_data),
     .dcache_wr_rdy(dcache_wr_rdy)
 );

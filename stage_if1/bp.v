@@ -1,4 +1,4 @@
-`include "/home/loongsonarch_1/Desktop/cdp_ede_local/mycpu_env/myCPU/defs.v"
+`include "/home/loongsonarch_1/Desktop/cdp_ede_local/myCPU/defs.v"
 
 module bp (
 //output
@@ -36,9 +36,9 @@ always @(posedge clk ) begin
         end
     end
     else if(we) begin
-        btb[pc_low][`VALID_BIT] <= 1;
-        btb[pc_low][`PREDICT_BIT] <= {btb[pc_low][`LOW_PREDICT_BIT],hitted};
-        btb[pc_low][`TARGET_BIT] <= wtarget;
+        btb[pc_low][`BTB_VALID_BIT] <= 1;
+        btb[pc_low][`BTB_PREDICT_BIT] <= {btb[pc_low][`BTB_LOW_PREDICT_BIT],hitted};
+        btb[pc_low][`BTB_TARGET_BIT] <= wtarget;
     end
 end
 
@@ -47,9 +47,9 @@ always @(*) begin
         branch <= 1'b0;
         target <= 32'b0;
     end
-    else if(btb[pc_low][`VALID_BIT] && btb[pc_low][`HIGH_PREDICT_BIT] == 1'b1) begin
+    else if(btb[pc_low][`BTB_VALID_BIT] && btb[pc_low][`BTB_HIGH_PREDICT_BIT] == 1'b1) begin
             branch <= 1'b1;
-            target <= btb[hit_addr][`TARGET_BIT];
+            target <= btb[hit_addr][`BTB_TARGET_BIT];
         end
     else begin
             branch <= 1'b0;
