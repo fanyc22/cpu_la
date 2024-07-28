@@ -79,7 +79,7 @@ output wire[127:0]  wr_data;  //
 input  wire         wr_rdy; //RAM准备好被cache写入
 
 assign rd_req = (state == `CACHE_STATE_IDLE || state == `CACHE_STATE_RW) && valid && (!hit) && (!op);
-assign rd_type = `ACCESS_SZ_WORD;
+assign rd_type = 3'b100;
 assign rd_addr = addr;
 
 wire [`CACHE_LOG_H-1:0]        index;
@@ -188,22 +188,22 @@ always@(*) begin
     if(valid)    
         case(state)
         `CACHE_STATE_IDLE:
-            if      (hit)         next_state = `CACHE_STATE_RW;
-            else if (~hit && op)  next_state = `CACHE_STATE_RW;
-            else if (~hit && ~op) next_state = `CACHE_STATE_MISS;
-            else                  next_state = `CACHE_STATE_IDLE;
+            if      (hit)   next_state = `CACHE_STATE_RW;
+            else if (op)    next_state = `CACHE_STATE_RW;
+            else            next_state = `CACHE_STATE_MISS;
         `CACHE_STATE_RW:
-            if      (hit)         next_state = `CACHE_STATE_RW;
-            else if (~hit && op)  next_state = `CACHE_STATE_RW;
-            else if (~hit && ~op) next_state = `CACHE_STATE_MISS;
-            else                  next_state = `CACHE_STATE_IDLE;
+            if      (hit)   next_state = `CACHE_STATE_RW;
+            else if (op)    next_state = `CACHE_STATE_RW;
+            else            next_state = `CACHE_STATE_MISS;
         `CACHE_STATE_MISS:
-            if      (rd_rdy)      next_state = `CACHE_STATE_REFILL; 
+            if (rdata_valid)      next_state = `CACHE_STATE_REFILL; 
             else                  next_state = `CACHE_STATE_MISS;
         `CACHE_STATE_REFILL:
-            if(ret_valid&&ret_last)     next_state = `CACHE_STATE_IDLE;
-            else                        next_state = `CACHE_STATE_REFILL;
+            if(ret_last)     next_state = `CACHE_STATE_IDLE;
+            else             next_state = `CACHE_STATE_REFILL;
         endcase
+    else
+        next_state = `CACHE_STATE_IDLE;
 end
 
 //cpubuf 
@@ -323,7 +323,10 @@ end
 
 
 always @(posedge clk)begin
-    if(state==`CACHE_STATE_MISS && next_state == `CACHE_STATE_REFILL)begin
+    if(!resetn)begin
+        refill_count <= `CACHE_LOG_W'b0;
+    end
+    else if(state==`CACHE_STATE_MISS && next_state == `CACHE_STATE_REFILL)begin
         refill_count <= `CACHE_LOG_W'b0;
     end
     else if(state == `CACHE_STATE_REFILL)begin
