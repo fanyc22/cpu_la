@@ -147,7 +147,7 @@ always @(posedge clk) begin
     end
     else if(tag_ram_we)begin
         tag_valid[index][hit_way] <= ((state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid)||(state==`CACHE_STATE_MISS&&ret_valid&&ret_last);
-        tag_dirty[index][hit_way] <= (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid;
+        tag_dirty[index][hit_way] <= ((state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid)||(state==`CACHE_STATE_MISS&&ret_valid&&ret_last&&op_r);//只有写操作会创造valid
     end
 end
 
@@ -286,7 +286,10 @@ assign data_ram_wdata  = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW 
                             (refill_count == offset_r[3:2])? wdata_r :ret_data;
 // assign data_valid      = state==`CACHE_STATE_RW && op_r;
 assign rdata           = (rdata_from_buf)? rdata_buf : data_ram_rdata;
-assign rdata_valid     = state==`CACHE_STATE_RW && (~op_r||rdata_from_buf);
+assign rdata_valid     = state ==`CACHE_STATE_RW && (~op_r||rdata_from_buf);
+
+assign wdata_valid     = state ==`CACHE_STATE_RW && (op_r ||rdata_from_buf); //rdata_from_buf被cpu读写公用了，在refill过程的末尾，向下一拍RW表明它是来自于连续的MISS拍
+
 assign tag_ram_index   = index;
 assign tag_ram_way     = replace_way;
 assign tag_ram_we      = (state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW )&&valid&&(!hit);
@@ -294,44 +297,6 @@ assign tag_ram_wdata   = tag;
 
 assign wdata_valid     = state == `CACHE_STATE_RW && op_r;
 /*
-if(state == `CACHE_STATE_IDLE ||state == `CACHE_STATE_RW ) begin
-    //tag比较
-    if(valid)begin
-    hit = 1'b0;
-        for(integer j=0;j<`CACHE_N;j+=1)begin
-            tag_hit[j] = (tag_valid[index][j]) && (tag == tag_ram_rdata[j]) 
-            if(tag_hit[j]) hit_way = j;
-            hit = hit ||tag_hit[j];
-        end
-    end
-    //命中了，分为写和读两种情况
-    if(valid&&hit&&op)begin
-        tag_valid[index][hit_way] =1'b1;
-        tag_dirty[index][hit_way] =1'b1;
-        data_ram_index = index;
-        data_ram_offset= offset;
-        data_ram_way   = hit_way;
-        data_ram_we    = 1'b1;
-        data_ram_wdata = wdata;
-    end
-    else if(valid&&hit&&~op)begin
-        data_ram_index = index;
-        data_ram_offset= offset;
-        data_ram_way   = hit_way;
-    end
-
-    //`CACHE_STATE_RW: 上一拍发出了读/写指令并命中，这一拍返回，同时正常接收读写指令
-    if(state==`CACHE_STATE_RW && op_r)begin
-        data_valid = 1'b1;        
-    end
-
-    else if(state==`CACHE_STATE_RW && ~op_r)begin
-        rdata = data_ram_rdata;
-        rdata_valid =1'b1;
-    end
-
-    //`CACHE_STATE_MISS了，但是写，比较好处理
-    //锁住此时的replace_way
     if(valid&&~hit&&op)begin
 assign tag_valid[index][replace_way] =1'b1;
         tag_dirty[index][replace_way] =1'b1;
@@ -384,6 +349,7 @@ if(state == `CACHE_STATE_MISS)begin
     end
 end
 */    
+
 //如果tag比较发生了dirty，把另一个状态机wirte_buf置为1,把要被写回的行放入wrbuf
 
 reg wrbuf_state;
@@ -393,17 +359,19 @@ always@(posedge clk)begin
         wrbuf_state<= `CACHE_WRBUF_IDLE;
     end
     else begin
-        wrbuf_next_state <= next_state;
+        wrbuf_next_state <= wrbuf_next_state;
     end
 end
 always@(*) begin    
     case(wrbuf_state)
         `CACHE_WRBUF_IDLE:
-            if(valid&&~hit&&dirty) wrbuf_next_state = `CACHE_WRBUF_WRITE;
+            if(valid && ~hit && dirty) wrbuf_next_state = `CACHE_WRBUF_WRITE;
             else                   wrbuf_next_state = `CACHE_WRBUF_IDLE;
         `CACHE_WRBUF_WRITE:
             if(wr_rdy)          wrbuf_next_state = `CACHE_STATE_IDLE;
             else                wrbuf_next_state = `CACHE_WRBUF_WRITE;
+        default:
+            wrbuf_next_state = `CACHE_STATE_IDLE;
     endcase
 end
 reg [32*`CACHE_W-1:0]  write_buf_data;
@@ -415,21 +383,11 @@ always@(posedge clk)begin
     end
 end
 
-assign     wr_req      = (wrbuf_state==`CACHE_WRBUF_WRITE);
-assign     wr_type     = 3'b010;
+assign     wr_req      = (wrbuf_state==`CACHE_WRBUF_WRITE);     //是wrbuf-next_state还是wrbuf-state?
+assign     wr_type     = 3'b100;
 assign     wr_addr     = write_buf_addr;
 assign     wr_wstrb    = 4'hf;
 assign     wr_size     = 3'b010;
 assign     wr_data     = write_buf_data;
 
-/*
-if(wrbuf_state==`CACHE_WRBUF_WRITE)begin
-    wr_req      = 1'b1;
-    wr_type     = 3'b010;
-    wr_addr     = write_buf_addr;
-    wr_wstrb    = 4'hf;
-    wr_size     = 3'b010;
-    wr_data     = write_buf_data;
-end
-*/
 endmodule

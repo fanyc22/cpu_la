@@ -2,35 +2,35 @@ module realcache (
     clk,
     resetn,
 //input from CPU
-    op,
-    valid,
-    addr,
-    wsize,
-    wdata,    
+    cpu_rw_op,
+    cpu_rw_en,
+    cpu_rw_addr,
+    cpu_rw_wsize,
+    cpu_rw_wdata,   
 //output to CPU
-    rdata,
-    rdata_valid,
-    wdata_valid,
+    output_rdata,
+    output_rdata_valid,
+    output_wdata_valid,
 //read from RAM
 //output to RAM
-    rd_req,
-    rd_type,
-    rd_addr,
+    axib_rd_req,
+    axib_rd_type,
+    axib_rd_addr,
 //input from RAM
-    rd_rdy,
-    ret_valid,
-    ret_last,
-    ret_data,
+    axib_rd_rdy,
+    axib_ret_valid,
+    axib_ret_last,
+    axib_ret_data,
 //write to RAM
 //output to RAM
-    wr_req,
-    wr_type,
-    wr_addr,
-    wr_wstrb,
-    wr_size,
-    wr_data,
+    axib_wr_req,
+    axib_wr_type,
+    axib_wr_addr,
+    axib_wr_wstrb,
+    axib_wr_size,
+    axib_wr_data,
 //input from RAM
-    wr_rdy
+    axib_wr_rdy
 );
 
 input wire clk;
