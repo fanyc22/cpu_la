@@ -173,20 +173,59 @@
 
 `define CSR_REG_SIZE 4096
 
-`define CACHE_N       4
-`define CACHE_H       256
-`define CACHE_W       4
-`define CACHE_LOG_H   8
-`define CACHE_LOG_W   2
-`define CACHE_LOG_N   2
-`define CACHE_TAG_LEN 20
+// `define CACHE_N       4
+// `define CACHE_H       256
+// `define CACHE_W       4
+// `define CACHE_LOG_H   8
+// `define CACHE_LOG_W   2
+// `define CACHE_LOG_N   2
+// `define CACHE_TAG_LEN 20
 
-`define CACHE_OP_RD  0
-`define CACHE_OP_WR  1
+// `define CACHE_OP_RD  0
+// `define CACHE_OP_WR  1
 
-`define CACHE_STATE_IDLE 3'b000
-`define CACHE_STATE_RW  3'b001
-`define CACHE_STATE_MISS 3'b010
-`define CACHE_STATE_REFILL 3'b011
-`define CACHE_WRBUF_IDLE 1'b0
-`define CACHE_WRBUF_WRITE 1'b1
+// `define CACHE_STATE_IDLE 3'b000
+// `define CACHE_STATE_RW  3'b001
+// `define CACHE_STATE_MISS 3'b010
+// `define CACHE_STATE_REFILL 3'b011
+// `define CACHE_WRBUF_IDLE 1'b0
+// `define CACHE_WRBUF_WRITE 1'b1
+
+`define CC_OFFSET_BIT_WIDTH  2
+`define CC_LINE_BIT_WIDTH  2
+`define CC_WAY_BIT_WIDTH  2
+`define CC_SET_BIT_WIDTH  10
+`define CC_TAG_BIT_WIDTH  18
+`define CC_OFFSET_SIZE  4
+`define CC_LINE_SIZE  4
+`define CC_WAY_SIZE  4
+`define CC_SET_SIZE  1024
+`define CC_TAG_SIZE  262144
+
+`define CC_LINE_WIDTH  18+1+1+32+32+32+32
+`define CC_LINE_TAG 147:130
+`define CC_LINE_VALID 129
+`define CC_LINE_DIRTY 128
+`define CC_LINE_DATA3 127:96
+`define CC_LINE_DATA2 95:64
+`define CC_LINE_DATA1 63:32
+`define CC_LINE_DATA0 31:0
+
+`define CC_ADDR_TAG 31:14
+`define CC_ADDR_SET 13:4
+`define CC_ADDR_OFFSET 3:2
+
+`define CC_AXI_OP_RD  2'b00
+`define CC_AXI_OP_WR  2'b01
+`define CC_AXI_OP_INVALID  2'b11
+
+`define CC_STATE_AVAILABLE  3'b000
+`define CC_STATE_AXISTALL_READ  3'b001
+`define CC_STATE_AXISTALL_WRITE  3'b010
+`define CC_STATE_AXIREADING  3'b011
+`define CC_STATE_AXILOADING  3'b100
+`define CC_STATE_AXIWRITING  3'b101
+`define CC_STATE_AXILOADING_LAST  3'b110
+
+`define CC_CPU_OP_RD  1'b0
+`define CC_CPU_OP_WR  1'b1

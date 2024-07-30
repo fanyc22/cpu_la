@@ -204,7 +204,7 @@ core U_core (
 //             .sram_wdata(data_sram_wdata),
 //             .sram_rdata(data_sram_rdata));
 
-cache U_icache(
+realcache U_icache(
     .clk(aclk),
     .resetn(aresetn),
 
@@ -237,7 +237,7 @@ cache U_icache(
     .wr_rdy()
 );
 
-cache U_dcache(
+realcache U_dcache(
     .clk(aclk),
     .resetn(aresetn),
 
