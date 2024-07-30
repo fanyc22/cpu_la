@@ -116,7 +116,7 @@ wire [31:0] dcache_rdata;
 
 always @(*) begin
     icache_valid <= inst_cache_re;
-    icache_op <= `CACHE_OP_RD;
+    icache_op <= `CC_CPU_OP_RD;
     icache_addr <= inst_cache_raddr;
     icache_wsize <= inst_cache_access_sz;
     icache_wdata <= inst_cache_wdata;
@@ -129,7 +129,7 @@ end
 
 always @(*) begin
     dcache_valid <= data_cache_re | data_cache_we;
-    dcache_op <= data_cache_re ? `CACHE_OP_RD : `CACHE_OP_WR;
+    dcache_op <= data_cache_re ? `CC_CPU_OP_RD : `CC_CPU_OP_WR;
     dcache_addr <= data_cache_re ? data_cache_raddr : data_cache_waddr;
     dcache_wsize <= data_cache_access_sz;
     dcache_wdata <= data_cache_wdata;
