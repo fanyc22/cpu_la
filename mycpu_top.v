@@ -227,7 +227,7 @@ realcache U_icache(
     .axib_rd_rdy(icache_rd_rdy),
     .axib_ret_valid(icache_ret_valid),
     .axib_ret_last(icache_ret_last),
-    .axib_ret_data(icache_ret_data)
+    .axib_ret_data(icache_ret_data),
 
     .axib_wr_req(),
     .axib_wr_type(),
@@ -259,7 +259,7 @@ realcache U_dcache(
     .axib_rd_rdy(dcache_rd_rdy),
     .axib_ret_valid(dcache_ret_valid),
     .axib_ret_last(dcache_ret_last),
-    .axib_ret_data(dcache_ret_data)
+    .axib_ret_data(dcache_ret_data),
 
     .axib_wr_req(dcahce_wr_req),
     .axib_wr_type(dcache_wr_type),
