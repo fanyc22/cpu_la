@@ -532,37 +532,37 @@ always @(posedge clk) begin
     end
     else if(cache_state == `CC_STATE_AVAILABLE 
         && cpu_rw_op == `CC_CPU_OP_WR && cpu_rw_en) begin
-        // case (buffer_cpu_rw_wsize)
-        //     `ACCESS_SZ_WORD: begin
-        //         cache_ram[cpu_addr_set][cache_hit_way][31:0] <= cpu_rw_wdata;
-        //     end
-        //     `ACCESS_SZ_HALF: begin
-        //         if(cpu_rw_addr[1:0] == 2'b00) begin
-        //             cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
-        //         end
-        //         else if(cpu_rw_addr[1:0] == 2'b10) begin
-        //             cache_ram[cpu_addr_set][cache_hit_way][15:0] <= cpu_rw_wdata[15:0];
-        //         end
-        //         else begin
-        //             cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
-        //         end
-        //     end
-        //     `ACCESS_SZ_BYTE: begin
-        //         if(cpu_rw_addr[1:0] == 2'b00) begin
-        //             cache_ram[cpu_addr_set][cache_hit_way][31:24] <= cpu_rw_wdata[7:0];
-        //         end
-        //         else if(cpu_rw_addr[1:0] == 2'b01) begin
-        //             cache_ram[cpu_addr_set][cache_hit_way][23:16] <= cpu_rw_wdata[7:0];
-        //         end
-        //         else if(cpu_rw_addr[1:0] == 2'b10) begin
-        //             cache_ram[cpu_addr_set][cache_hit_way][15:8] <= cpu_rw_wdata[7:0];
-        //         end
-        //         else begin
-        //             cache_ram[cpu_addr_set][cache_hit_way][7:0] <= cpu_rw_wdata[7:0];
-        //         end
-        //     end
-        // endcase
-        cache_ram[cpu_addr_set][cache_hit_way][31:0] <= cpu_rw_wdata;
+        case (cpu_rw_wsize)
+            `ACCESS_SZ_WORD: begin
+                cache_ram[cpu_addr_set][cache_hit_way][31:0] <= cpu_rw_wdata;
+            end
+            `ACCESS_SZ_HALF: begin
+                if(cpu_rw_addr[1:0] == 2'b00) begin
+                    cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
+                end
+                else if(cpu_rw_addr[1:0] == 2'b10) begin
+                    cache_ram[cpu_addr_set][cache_hit_way][15:0] <= cpu_rw_wdata[15:0];
+                end
+                else begin
+                    cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
+                end
+            end
+            `ACCESS_SZ_BYTE: begin
+                if(cpu_rw_addr[1:0] == 2'b00) begin
+                    cache_ram[cpu_addr_set][cache_hit_way][31:24] <= cpu_rw_wdata[7:0];
+                end
+                else if(cpu_rw_addr[1:0] == 2'b01) begin
+                    cache_ram[cpu_addr_set][cache_hit_way][23:16] <= cpu_rw_wdata[7:0];
+                end
+                else if(cpu_rw_addr[1:0] == 2'b10) begin
+                    cache_ram[cpu_addr_set][cache_hit_way][15:8] <= cpu_rw_wdata[7:0];
+                end
+                else begin
+                    cache_ram[cpu_addr_set][cache_hit_way][7:0] <= cpu_rw_wdata[7:0];
+                end
+            end
+        endcase
+        // cache_ram[cpu_addr_set][cache_hit_way][31:0] <= cpu_rw_wdata;
         cache_ram[cpu_addr_set][cache_hit_way][32] <= 1;
     end
     else if(cache_state == `CC_STATE_AXILOADING_LAST) begin
@@ -570,46 +570,46 @@ always @(posedge clk) begin
     end
 end
 
-// reg [31:0] ram_wdata;
-wire [31:0] ram_wdata;
-assign ram_wdata = buffer_cpu_rw_op==`CC_CPU_OP_WR ? buffer_cpu_rw_wdata : axib_ret_data;
-// always @(*) begin
-//     if(buffer_cpu_rw_op==`CC_CPU_OP_WR) begin
-//         case (buffer_cpu_rw_wsize)
-//             `ACCESS_SZ_WORD: begin
-//                 ram_wdata = buffer_cpu_rw_wdata;
-//             end
-//             `ACCESS_SZ_HALF: begin
-//                 if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
-//                     ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[15:0]};
-//                 end
-//                 else begin
-//                     ram_wdata = {buffer_cpu_rw_wdata[15:0], axib_ret_data[15:0]};
-//                 end
-//             end
-//             `ACCESS_SZ_BYTE: begin
-//                 if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
-//                     ram_wdata = {axib_ret_data[31:8], buffer_cpu_rw_wdata[7:0]};
-//                 end
-//                 else if(buffer_cpu_rw_addr[1:0] == 2'b01) begin
-//                     ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
-//                 end
-//                 else if(buffer_cpu_rw_addr[1:0] == 2'b10) begin
-//                     ram_wdata = {axib_ret_data[31:24], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
-//                 end
-//                 else begin
-//                     ram_wdata = {buffer_cpu_rw_wdata[7:0], axib_ret_data[23:0]};
-//                 end
-//             end
-//             default: begin
-//                 ram_wdata = 32'b0;
-//             end
-//         endcase
-//     end
-//     else begin
-//         ram_wdata = axib_ret_data;
-//     end
-// end
+// wire [31:0] ram_wdata;
+// assign ram_wdata = buffer_cpu_rw_op==`CC_CPU_OP_WR ? buffer_cpu_rw_wdata : axib_ret_data;
+reg [31:0] ram_wdata;
+always @(*) begin
+    if(buffer_cpu_rw_op==`CC_CPU_OP_WR) begin
+        case (buffer_cpu_rw_wsize)
+            `ACCESS_SZ_WORD: begin
+                ram_wdata = buffer_cpu_rw_wdata;
+            end
+            `ACCESS_SZ_HALF: begin
+                if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
+                    ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[15:0]};
+                end
+                else begin
+                    ram_wdata = {buffer_cpu_rw_wdata[15:0], axib_ret_data[15:0]};
+                end
+            end
+            `ACCESS_SZ_BYTE: begin
+                if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
+                    ram_wdata = {axib_ret_data[31:8], buffer_cpu_rw_wdata[7:0]};
+                end
+                else if(buffer_cpu_rw_addr[1:0] == 2'b01) begin
+                    ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
+                end
+                else if(buffer_cpu_rw_addr[1:0] == 2'b10) begin
+                    ram_wdata = {axib_ret_data[31:24], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
+                end
+                else begin
+                    ram_wdata = {buffer_cpu_rw_wdata[7:0], axib_ret_data[23:0]};
+                end
+            end
+            default: begin
+                ram_wdata = 32'b0;
+            end
+        endcase
+    end
+    else begin
+        ram_wdata = axib_ret_data;
+    end
+end
 
 // always @(posedge clk) begin
 //     if(!rst_n)begin
