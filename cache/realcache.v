@@ -130,7 +130,8 @@ always @(posedge clk) begin
         buffer_cache_replace_line <= 128'b0;
     end
     else if(cache_last_state == `CC_STATE_AXILOADING_LAST 
-        || cache_last_state == `CC_STATE_AVAILABLE) begin
+        || cache_last_state == `CC_STATE_AVAILABLE
+        || cache_last_state == `CC_STATE_FLUSH) begin
         buffer_cpu_rw_en <= cpu_rw_en;
         buffer_cpu_rw_op <= cpu_rw_op;
         buffer_cpu_rw_addr <= cpu_rw_addr;
@@ -263,6 +264,9 @@ always @(*) begin
     if(!rst_n) begin
         cache_last_state <= `CC_STATE_AVAILABLE;
     end
+    else if(cpu_flush) begin
+        cache_last_state <= `CC_STATE_FLUSH;
+    end
     else begin
         case (cache_last_state)
             `CC_STATE_AVAILABLE: begin
@@ -360,7 +364,31 @@ always @(*) begin
                 end
             end
             default: begin
-                cache_state <= `CC_STATE_AVAILABLE;
+                if(cpu_rw_en & cache_hit) begin
+                    cache_state <= `CC_STATE_AVAILABLE;
+                end
+                else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
+                    if(axib_rd_rdy) begin
+                        cache_state <= `CC_STATE_AXIREADING;
+                    end
+                    else begin
+                        cache_state <= `CC_STATE_AXISTALL_READ;
+                    end
+                end
+                else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
+                    if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
+                        cache_state <= `CC_STATE_AXIWRITING;
+                    end
+                    else if(cache_way_full && cache_replace_dirty) begin
+                        cache_state <= `CC_STATE_AXISTALL_WRITE;
+                    end
+                    else begin
+                        cache_state <= `CC_STATE_AXIREADING;
+                    end
+                end
+                else begin
+                    cache_state <= `CC_STATE_AVAILABLE;
+                end
             end
         endcase
     end

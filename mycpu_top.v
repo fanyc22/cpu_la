@@ -60,6 +60,7 @@ wire inst_cache_we;
 wire [31:0] inst_cache_waddr;
 wire [31:0] inst_cache_wdata;
 wire [1:0] inst_cache_access_sz;
+wire inst_cache_flush;
 wire data_cache_re;
 wire [31:0] data_cache_raddr;
 reg [31:0] data_cache_rdata;
@@ -68,6 +69,7 @@ wire data_cache_we;
 wire [31:0] data_cache_waddr;
 wire [31:0] data_cache_wdata;
 wire [1:0] data_cache_access_sz;
+wire data_cache_flush;
 
 wire icache_rd_req;
 wire [2:0] icache_rd_type;
@@ -101,8 +103,8 @@ reg [31:0] icache_wdata;
 wire icache_rdata_valid;
 wire icache_wdata_valid;
 wire [31:0] icache_rdata;
-wire [31:0] icache_raddr_out;
-wire icache_raddr_valid;
+// wire [31:0] icache_raddr_out;
+// wire icache_raddr_valid;
 
 reg dcache_op;
 reg dcache_valid;
@@ -148,8 +150,9 @@ core U_core (
             .inst_cache_waddr(inst_cache_waddr),
             .inst_cache_wdata(inst_cache_wdata),
             .inst_cache_access_sz(inst_cache_access_sz),
-            .icache_raddr_out(icache_raddr_out),
-            .icache_raddr_valid(icache_raddr_valid),
+            .inst_cache_flush(inst_cache_flush),
+            // .icache_raddr_out(icache_raddr_out),
+            // .icache_raddr_valid(icache_raddr_valid),
 
             .data_cache_re(data_cache_re),
             .data_cache_we(data_cache_we),
@@ -157,6 +160,7 @@ core U_core (
             .data_cache_waddr(data_cache_waddr),
             .data_cache_wdata(data_cache_wdata),
             .data_cache_access_sz(data_cache_access_sz),
+            .data_cache_flush(data_cache_flush),
 
             .debug_wb_pc(debug_wb_pc),
             .debug_wb_rf_we(debug_wb_rf_we),
@@ -205,67 +209,68 @@ core U_core (
 //             .sram_rdata(data_sram_rdata));
 
 realcache U_icache(
+    .output_rdata(icache_rdata),
+    .output_rdata_valid(icache_rdata_valid),
+    .output_wdata_valid(icache_wdata_valid),
+
+    .cpu_flush(icache_flush),
+    .cpu_rw_op(icache_op),
+    .cpu_rw_en(icache_valid),
+    .cpu_rw_addr(icache_addr),
+    .cpu_rw_wsize(icache_wsize),
+    .cpu_rw_wdata(icache_wdata),
+
+    .axib_rd_req(icache_rd_req),
+    .axib_rd_type(icache_rd_type),
+    .axib_rd_addr(icache_rd_addr),
+
+    .axib_rd_rdy(icache_rd_rdy),
+    .axib_ret_valid(icache_ret_valid),
+    .axib_ret_last(icache_ret_last),
+    .axib_ret_data(icache_ret_data)
+
+    .axib_wr_req(),
+    .axib_wr_type(),
+    .axib_wr_addr(),
+    .axib_wr_wstrb(),
+    .axib_wr_data(),
+
+    .axib_wr_rdy(),
+
     .clk(aclk),
-    .resetn(aresetn),
-
-    .op(icache_op),
-    .valid(icache_valid),
-    .addr(icache_addr),
-    .wsize(icache_wsize),
-    .wdata(icache_wdata),
-
-    .rdata(icache_rdata),
-    .rdata_valid(icache_rdata_valid),
-    .wdata_valid(icache_wdata_valid),
-    .raddr_out(icache_raddr_out),
-    .raddr_valid(icache_raddr_valid),
-
-    .rd_req(icache_rd_req),
-    .rd_type(icache_rd_type),
-    .rd_addr(icache_rd_addr),
-    .rd_rdy(icache_rd_rdy),
-    .ret_valid(icache_ret_valid),
-    .ret_last(icache_ret_last),
-    .ret_data(icache_ret_data),
-
-    .wr_req(),
-    .wr_type(),
-    .wr_addr(),
-    .wr_wstrb(),
-    .wr_size(),
-    .wr_data(),
-    .wr_rdy()
-);
+    .rst_n(aresetn));
 
 realcache U_dcache(
+    .output_rdata(dcache_rdata),
+    .output_rdata_valid(dcache_rdata_valid),
+    .output_wdata_valid(dcache_wdata_valid),
+
+    .cpu_flush(data_cache_flush),
+    .cpu_rw_op(dcache_op),
+    .cpu_rw_en(dcache_valid),
+    .cpu_rw_addr(dcache_addr),
+    .cpu_rw_wsize(dcache_wsize),
+    .cpu_rw_wdata(dcache_wdata),
+
+    .axib_rd_req(dcache_rd_req),
+    .axib_rd_type(dcache_rd_type),
+    .axib_rd_addr(dcache_rd_addr),
+
+    .axib_rd_rdy(dcache_rd_rdy),
+    .axib_ret_valid(dcache_ret_valid),
+    .axib_ret_last(dcache_ret_last),
+    .axib_ret_data(dcache_ret_data)
+
+    .axib_wr_req(dcahce_wr_req),
+    .axib_wr_type(dcache_wr_type),
+    .axib_wr_addr(dcache_wr_addr),
+    .axib_wr_wstrb(dcache_wr_wstrb),
+    .axib_wr_data(dcache_wr_data),
+
+    .axib_wr_rdy(dcache_wr_rdy),
+
     .clk(aclk),
-    .resetn(aresetn),
-
-    .op(dcache_op),
-    .valid(dcache_valid),
-    .addr(dcache_addr),
-    .wsize(dcache_wsize),
-    .wdata(dcache_wdata),
-
-    .rdata(dcache_rdata),
-    .rdata_valid(dcache_rdata_valid),
-    .wdata_valid(dcache_wdata_valid),
-
-    .rd_req(dcache_rd_req),
-    .rd_type(dcache_rd_type),
-    .rd_addr(dcache_rd_addr),
-    .rd_rdy(dcache_rd_rdy),
-    .ret_valid(dcache_ret_valid),
-    .ret_last(dcache_ret_last),
-    .ret_data(dcache_ret_data),
-
-    .wr_req(dcahce_wr_req),
-    .wr_type(dcache_wr_type),
-    .wr_addr(dcache_wr_addr),
-    .wr_wstrb(dcache_wr_wstrb),
-    .wr_data(dcache_wr_data),
-    .wr_rdy(dcache_wr_rdy)
-);
+    .rst_n(aresetn));
 
 axi_bridge U_axi_bridge(
     .aclk(aclk),

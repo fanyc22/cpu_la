@@ -226,6 +226,7 @@
 `define CC_STATE_AXILOADING  3'b100
 `define CC_STATE_AXIWRITING  3'b101
 `define CC_STATE_AXILOADING_LAST  3'b110
+`define CC_STATE_FLUSH  3'b111
 
 `define CC_CPU_OP_RD  1'b0
 `define CC_CPU_OP_WR  1'b1
