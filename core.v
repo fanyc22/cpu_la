@@ -1,4 +1,4 @@
-`include "/home/loongsonarch_1/Desktop/cdp_ede_local/myCPU/defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
 
 module core (
 //output
@@ -275,7 +275,7 @@ pc U_pc(
 
 assign if2_inst = inst_cache_rdata;
 assign if2_icache_hit = inst_cache_hit;
-assign if2_icache_miss = (!inst_cache_hit) & if1_if2.cache_valid ;
+assign if2_icache_miss = (!inst_cache_hit && !if2_id.buffered) & if1_if2.cache_valid ;
 
 always @(*) begin
     inst_cache_re <= if1_icache_re;

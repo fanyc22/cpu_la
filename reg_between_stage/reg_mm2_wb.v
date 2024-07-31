@@ -1,4 +1,4 @@
-`include "/home/loongsonarch_1/Desktop/cdp_ede_local/myCPU/defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
 module reg_mm2_wb (
 //output
 
@@ -122,31 +122,31 @@ always @(posedge clk ) begin
         pc <= 32'b0;
     end
     else if(wen) begin
-        csr_we <= mm2_csr_we;
-        ecode <= mm2_ecode;
-        esubcode <= mm2_esubcode;
-        adef <= mm2_adef;
-        sys <= mm2_sys;
-        brk <= mm2_brk;
-        ine <= mm2_ine;
-        ale <= mm2_ale;
-        interrupt <= mm2_interrupt;
-        ertn <= mm2_ertn;
-        sbcode <= mm2_sbcode;
-        flush_before <= mm2_flush_before;
-        csr_wdata <= mm2_csr_wdata;
-        csr_wmask <= mm2_csr_wmask;
-        csr_addr <= mm2_csr_addr;
-        csr_re <= mm2_csr_re;
+        csr_we <= flush ? 1'b0 : mm2_csr_we;
+        ecode <= flush ? 6'b0 : mm2_ecode;
+        esubcode <= flush ? 9'b0 : mm2_esubcode;
+        adef <= flush ? 1'b0 : mm2_adef;
+        sys <= flush ? 1'b0 : mm2_sys;
+        brk <= flush ? 1'b0 : mm2_brk;
+        ine <= flush ? 1'b0 : mm2_ine;
+        ale <= flush ? 1'b0 : mm2_ale;
+        interrupt <= flush ? 1'b0 : mm2_interrupt;
+        ertn <= flush ? 1'b0 : mm2_ertn;
+        sbcode <= flush ? 15'b0 : mm2_sbcode;
+        flush_before <= flush ? 1'b0 : mm2_flush_before;
+        csr_wdata <= flush ? 32'b0 : mm2_csr_wdata;
+        csr_wmask <= flush ? 32'b0 : mm2_csr_wmask;
+        csr_addr <= flush ? 32'b0 : mm2_csr_addr;
+        csr_re <= flush ? 1'b0 : mm2_csr_re;
         // csr_we <= mm2_csr_we;
-        exe_out <= mm2_exe_out;
-        reg_d <= mm2_reg_d;
-        op <= mm2_op;
-        op_type <= mm2_op_type;
-        rdata <= mm2_rdata;
-        reg_d_wen <= mm2_reg_d_wen;
-        mm_addr <= mm2_mm_addr;
-        mm_access_sz <= mm2_mm_access_sz;
+        exe_out <= flush ? 32'b0 : mm2_exe_out;
+        reg_d <= flush ? 5'b0 : mm2_reg_d;
+        op <= flush ? 8'b0 : mm2_op;
+        op_type <= flush ? 3'b0 : mm2_op_type;
+        rdata <= flush ? 32'b0 : mm2_rdata;
+        reg_d_wen <= flush ? 1'b0 : mm2_reg_d_wen;
+        mm_addr <= flush ? 32'b0 : mm2_mm_addr;
+        mm_access_sz <= flush ? 2'b0 : mm2_mm_access_sz;
         pc <= flush ? 32'b0 : mm2_pc;
     end
 end

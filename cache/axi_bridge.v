@@ -279,6 +279,7 @@ module axi_bridge(
 		end
 		else if(ar_current_state[0]) begin	// 读请求状态机为空闲状态，更新数据
 			arid <= {3'b0, dcache_rd_req};	// 数据RAM请求优先于指令RAM
+            // arid <= 4'b0;
 			araddr <= dcache_rd_req? dcache_rd_addr : icache_rd_addr;
 			// arsize <= dcache_rd_req? {1'b0, dcache_rd_type[1:0]} : {1'b0, icache_rd_type[1:0]};
 			arlen[1:0] <= dcache_rd_req? {2{dcache_rd_type[2]}} : {2{icache_rd_type[2]}};

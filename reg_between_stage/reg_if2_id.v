@@ -1,4 +1,4 @@
-`include "/home/loongsonarch_1/Desktop/cdp_ede_local/myCPU/defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
 module reg_if2_id (
 //output
 
@@ -42,6 +42,7 @@ reg hit;
 reg branch_bp;
 reg stalled;
 reg [31:0] buffer_inst;
+reg buffered;
 reg flushed;
 
 always @(posedge clk ) begin
@@ -57,7 +58,7 @@ always @(posedge clk ) begin
         adef <= flush ? 0 : if2_adef;
         pc <= flush ? 0 : if2_pc;
         inst <= flush ? 0 :
-                if1_if2_cache_valid ? (stalled ? buffer_inst : if2_inst) : 32'b0;
+                if1_if2_cache_valid ? (buffered ? buffer_inst : if2_inst) : 32'b0;
         hit <= flush ? 0 :
             if1_if2_cache_valid ? if2_icache_hit : 1'b0;
         branch_bp <= flush ? 0 : if2_branch_bp;
@@ -75,14 +76,15 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    if(!rst_n) begin
+    if(!rst_n||wen) begin
         buffer_inst <= 32'b0;
+        buffered <= 1'b0;
     end
     else begin
-        if(!stalled && !wen)
+        if(!buffered && if2_icache_hit) begin
             buffer_inst <= if2_inst;
-        else
-            buffer_inst <= buffer_inst;
+            buffered <= 1'b1;
+        end
     end
 end
 

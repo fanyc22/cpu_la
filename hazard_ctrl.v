@@ -1,4 +1,4 @@
-`include "/home/loongsonarch_1/Desktop/cdp_ede_local/myCPU/defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
 
 module hazard_ctrl (
 //output

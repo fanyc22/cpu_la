@@ -1,4 +1,4 @@
-`include "/home/loongsonarch_1/Desktop/cdp_ede_local/myCPU/defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
 
 module mycpu_top(
     input  [7:0] ext_int,
@@ -131,7 +131,7 @@ end
 
 always @(*) begin
     dcache_valid <= data_cache_re | data_cache_we;
-    dcache_op <= data_cache_re ? `CC_CPU_OP_RD : `CC_CPU_OP_WR;
+    dcache_op <= data_cache_we ? `CC_CPU_OP_WR : `CC_CPU_OP_RD;
     dcache_addr <= data_cache_re ? data_cache_raddr : data_cache_waddr;
     dcache_wsize <= data_cache_access_sz;
     dcache_wdata <= data_cache_wdata;
@@ -213,7 +213,7 @@ realcache U_icache(
     .output_rdata_valid(icache_rdata_valid),
     .output_wdata_valid(icache_wdata_valid),
 
-    .cpu_flush(icache_flush),
+    .cpu_flush(inst_cache_flush),
     .cpu_rw_op(icache_op),
     .cpu_rw_en(icache_valid),
     .cpu_rw_addr(icache_addr),
@@ -240,7 +240,7 @@ realcache U_icache(
     .clk(aclk),
     .rst_n(aresetn));
 
-realcache U_dcache(
+realcache_d U_dcache(
     .output_rdata(dcache_rdata),
     .output_rdata_valid(dcache_rdata_valid),
     .output_wdata_valid(dcache_wdata_valid),
