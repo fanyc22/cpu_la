@@ -316,7 +316,7 @@ module axi_bridge(
 	end
 //-----------------------------------------write data channel---------------------------------------
     assign wvalid = w_current_state[1] | w_current_state[2];	// W_REQ_START | W_ADDR_RESP
-	assign wlast  = (&wburst_cnt) | ((!|arlen) & wvalid);
+	assign wlast  = (&wburst_cnt) | ((!(|awlen)) & wvalid);
 	always  @(posedge aclk) begin
 		if(~aresetn) begin
 			dcache_wr_wstrb_r <= 4'b0;
