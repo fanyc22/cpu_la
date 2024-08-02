@@ -214,7 +214,7 @@ module axi_bridge(
 					w_next_state = W_DATA_RESP;
 			end
 			W_REQ_END:
-				if(bvalid & bvalid & wlast)
+				if(bready & bvalid)
 					w_next_state = IDLE;
 				else
 					w_next_state = W_REQ_END;
@@ -242,7 +242,7 @@ module axi_bridge(
 					b_next_state = IDLE;
 			end
 			B_START:begin
-				if(bready & bvalid & wlast) 
+				if(bready & bvalid) 
 					b_next_state = B_END;
 				else 
 					b_next_state = B_START;
