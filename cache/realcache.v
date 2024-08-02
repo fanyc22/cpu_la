@@ -783,7 +783,7 @@ always @(posedge clk) begin
         cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DIRTY] <= 1;
     end
     else if(cache_state == `CC_STATE_AXILOADING_LAST && !buffer_cpu_uncache) begin
-        cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load] <= {buffer_cpu_addr_tag, 1'b1,buffer_cpu_rw_op==`CC_CPU_OP_WR, axib_ret_data, buffer_shift_load_line[0], buffer_shift_load_line[1], buffer_shift_load_line[2]};
+        cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load] <= {buffer_cpu_addr_tag, 1'b1,buffer_cpu_rw_op==`CC_CPU_OP_WR, ram_wdata, buffer_shift_load_line[0], buffer_shift_load_line[1], buffer_shift_load_line[2]};
     end
 end
 
