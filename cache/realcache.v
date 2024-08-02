@@ -1,4 +1,6 @@
-`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\func_test\\myCPU\\defs.v"
+`define CONF_ADDR_BASE 32'h1faf_0000
+`define CONF_ADDR_MASK 32'h1fff_0000 //for bfaf or 1faf
 
 module realcache (
 //output to CPU
@@ -84,12 +86,13 @@ reg [31:0] cache_replace_addr;
 wire cache_replace_dirty;
 reg [127:0] cache_replace_line;
 reg [`CC_WAY_BIT_WIDTH-1:0] cache_hit_way;
-reg [2:0] cache_last_state;
-reg [2:0] cache_state;
+reg [3:0] cache_last_state;
+reg [3:0] cache_state;
 
 reg [`CC_SET_BIT_WIDTH-1:0] cpu_addr_set;
 reg [`CC_TAG_BIT_WIDTH-1:0] cpu_addr_tag;
 reg [`CC_OFFSET_BIT_WIDTH-1:0] cpu_addr_offset;
+wire cpu_uncache;
 
 reg buffer_cpu_rw_en;
 reg buffer_cpu_rw_op;
@@ -99,6 +102,7 @@ reg [`CC_TAG_BIT_WIDTH-1:0] buffer_cpu_addr_tag;
 reg [`CC_OFFSET_BIT_WIDTH-1:0] buffer_cpu_addr_offset;
 reg [1:0] buffer_cpu_rw_wsize;
 reg [31:0] buffer_cpu_rw_wdata;
+reg buffer_cpu_uncache;
 reg [1:0] buffer_cache_way_hit;
 reg [1:0] buffer_cache_way_to_load;
 reg [31:0] buffer_cache_replace_addr;
@@ -112,6 +116,18 @@ reg [1:0] load_cnt;
 // reg [1:0] axi_op_reg;
 
 reg buffer_axi_rdata_to_cpu;
+reg [31:0] buffer_uncache_rdata;
+
+always @(posedge clk) begin
+    if(!rst_n) begin
+        buffer_uncache_rdata <= 32'b0;
+    end
+    else begin
+        buffer_uncache_rdata <= axib_ret_data;
+    end
+end
+
+assign cpu_uncache = (cpu_rw_addr & `CONF_ADDR_MASK) == `CONF_ADDR_BASE;
 
 //buffer_cpu and buffer_cache
 always @(posedge clk) begin
@@ -124,6 +140,7 @@ always @(posedge clk) begin
         buffer_cpu_addr_offset <= 0;
         buffer_cpu_rw_wsize <= 2'b00;
         buffer_cpu_rw_wdata <= 32'b0;
+        buffer_cpu_uncache <= 0;
         buffer_cache_way_hit <= 2'd0;
         buffer_cache_way_to_load <= 2'd0;
         buffer_cache_replace_addr <= 32'b0;
@@ -131,7 +148,8 @@ always @(posedge clk) begin
     end
     else if(cache_last_state == `CC_STATE_AXILOADING_LAST 
         || cache_last_state == `CC_STATE_AVAILABLE
-        || cache_last_state == `CC_STATE_FLUSH) begin
+        || cache_last_state == `CC_STATE_FLUSH
+        ||(cache_last_state == `CC_STATE_UNCACHE_AXIWRITING && !axib_wr_rdy)) begin
         buffer_cpu_rw_en <= cpu_rw_en;
         buffer_cpu_rw_op <= cpu_rw_op;
         buffer_cpu_rw_addr <= cpu_rw_addr;
@@ -140,6 +158,7 @@ always @(posedge clk) begin
         buffer_cpu_addr_offset <= cpu_addr_offset;
         buffer_cpu_rw_wsize <= cpu_rw_wsize;
         buffer_cpu_rw_wdata <= cpu_rw_wdata;
+        buffer_cpu_uncache <= cpu_uncache;
         buffer_cache_way_hit <= cache_hit_way;
         buffer_cache_way_to_load <= cache_way_to_load;
         buffer_cache_replace_addr <= cache_replace_addr;
@@ -159,12 +178,17 @@ always @(*) begin
             && buffer_cpu_rw_en ) begin
             output_rdata_valid <= 1;
             // output_rdata <= buffer_axi_rdata_to_cpu;
-            case (buffer_cpu_addr_offset)
-                2'd0: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA0];
-                2'd1: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA1];
-                2'd2: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA2];
-                default: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA3];
-            endcase
+            if(buffer_cpu_uncache) begin
+                output_rdata <= buffer_uncache_rdata;
+            end
+            else begin
+                case (buffer_cpu_addr_offset)
+                    2'd0: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA0];
+                    2'd1: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA1];
+                    2'd2: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA2];
+                    default: output_rdata <= cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load][`CC_LINE_DATA3];
+                endcase
+            end
         end
         else if(cache_last_state == `CC_STATE_AVAILABLE
             && buffer_cpu_rw_op == `CC_CPU_OP_RD
@@ -187,16 +211,16 @@ end
 //output_wdata_valid
 always @(*) begin
     if(!rst_n) begin
-        output_wdata_valid <= 0;
+        output_wdata_valid = 0;
     end
     else begin
-        if((cache_last_state == `CC_STATE_AXILOADING_LAST || cache_last_state == `CC_STATE_AVAILABLE)
+        if((cache_last_state == `CC_STATE_AXILOADING_LAST || cache_last_state == `CC_STATE_AVAILABLE || (cache_last_state == `CC_STATE_UNCACHE_AXIWRITING && !axib_wr_rdy))
             && buffer_cpu_rw_op == `CC_CPU_OP_WR
-            && buffer_cpu_rw_en ) begin
-            output_wdata_valid <= 1;
+            && buffer_cpu_rw_en) begin
+            output_wdata_valid = 1;
         end
         else begin
-            output_wdata_valid <= 0;
+            output_wdata_valid = 0;
         end
     end
 end
@@ -211,10 +235,18 @@ always @(*) begin
     else begin
         if(cache_state == `CC_STATE_AXIREADING && axib_rd_rdy) begin
             axib_rd_req <= 1;
-            axib_rd_type <= 3'b111;
-            axib_rd_addr <= (cache_last_state==`CC_STATE_AXISTALL_READ) ? 
-                            {buffer_cpu_rw_addr[31:4], 4'b0} :
-                            {cpu_rw_addr[31:4], 4'b0};
+            // axib_rd_type <= 3'b111;
+            // axib_rd_addr <= (cache_last_state==`CC_STATE_AXISTALL_READ) ? 
+            //                 {buffer_cpu_rw_addr[31:4], 4'b0} :
+            //                 {cpu_rw_addr[31:4], 4'b0};
+            if(cache_last_state == `CC_STATE_AXISTALL_READ) begin
+                axib_rd_type <= buffer_cpu_uncache? 3'b000 : 3'b111;
+                axib_rd_addr <= buffer_cpu_uncache?  {buffer_cpu_rw_addr[31:2], 2'b0} : {buffer_cpu_rw_addr[31:4], 4'b0};
+            end
+            else begin
+                axib_rd_type <= cpu_uncache? 3'b000 : 3'b111;
+                axib_rd_addr <= cpu_uncache? {cpu_rw_addr[31:2], 2'b0} : {cpu_rw_addr[31:4], 4'b0};
+            end
         end
         else begin
             axib_rd_req <= 0;
@@ -244,6 +276,17 @@ always @(*) begin
             axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
                             buffer_cache_replace_line : 
                             cache_replace_line;
+        end
+        else if(cache_state == `CC_STATE_UNCACHE_AXIWRITING && axib_wr_rdy) begin
+            axib_wr_req <= 1;
+            axib_wr_type <= 3'b000;
+            axib_wr_addr <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
+                            buffer_cpu_rw_addr:
+                            cpu_rw_addr; 
+            axib_wr_wstrb <= 4'b1111;
+            axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
+                            {96'd0 ,buffer_cpu_rw_wdata}:
+                            {96'd0 ,cpu_rw_wdata}; 
         end
         else begin
             axib_wr_req <= 0;
@@ -275,36 +318,42 @@ always @(*) begin
     end
     else begin
         case (cache_last_state)
-            `CC_STATE_AVAILABLE: begin
-                if(cpu_rw_en & cache_hit) begin
-                    cache_state <= `CC_STATE_AVAILABLE;
-                end
-                else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
-                    if(axib_rd_rdy) begin
-                        cache_state <= `CC_STATE_AXIREADING;
-                    end
-                    else begin
-                        cache_state <= `CC_STATE_AXISTALL_READ;
-                    end
-                end
-                else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
-                    if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
-                        cache_state <= `CC_STATE_AXIWRITING;
-                    end
-                    else if(cache_way_full && cache_replace_dirty) begin
-                        cache_state <= `CC_STATE_AXISTALL_WRITE;
-                    end
-                    else if(axib_rd_rdy) begin
-                        cache_state <= `CC_STATE_AXIREADING;
-                    end
-                    else begin
-                        cache_state <= `CC_STATE_AXISTALL_READ;
-                    end
-                end
-                else begin
-                    cache_state <= `CC_STATE_AVAILABLE;
-                end
-            end
+            // `CC_STATE_AVAILABLE: begin
+            //     if(cpu_rw_en & cache_hit) begin
+            //         cache_state <= `CC_STATE_AVAILABLE;
+            //     end
+            //     else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
+            //         if(axib_rd_rdy) begin
+            //             cache_state <= `CC_STATE_AXIREADING;
+            //         end
+            //         else begin
+            //             cache_state <= `CC_STATE_AXISTALL_READ;
+            //         end
+            //     end
+            //     else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
+            //         if(cpu_uncache && axib_wr_rdy) begin
+            //             cache_state <= `CC_STATE_UNCACHE_AXIWRITING;
+            //         end
+            //         else if(cpu_uncache) begin
+            //             cache_state <= `CC_STATE_UNCACHE_AXISTALL_WRITE;
+            //         end
+            //         else if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
+            //             cache_state <= `CC_STATE_AXIWRITING;
+            //         end
+            //         else if(cache_way_full && cache_replace_dirty) begin
+            //             cache_state <= `CC_STATE_AXISTALL_WRITE;
+            //         end
+            //         else if(axib_rd_rdy) begin
+            //             cache_state <= `CC_STATE_AXIREADING;
+            //         end
+            //         else begin
+            //             cache_state <= `CC_STATE_AXISTALL_READ;
+            //         end
+            //     end
+            //     else begin
+            //         cache_state <= `CC_STATE_AVAILABLE;
+            //     end
+            // end
             `CC_STATE_AXISTALL_READ: begin
                 if(axib_rd_rdy) begin
                     cache_state <= `CC_STATE_AXIREADING;
@@ -321,12 +370,25 @@ always @(*) begin
                     cache_state <= `CC_STATE_AXISTALL_WRITE;
                 end
             end
-            `CC_STATE_AXIWRITING: begin
-                if(axib_rd_rdy) begin
-                    cache_state <= `CC_STATE_AXIREADING;
+            `CC_STATE_UNCACHE_AXISTALL_WRITE: begin
+                if(axib_wr_rdy) begin
+                    cache_state <= `CC_STATE_UNCACHE_AXIWRITING;
                 end
                 else begin
-                    cache_state <= `CC_STATE_AXISTALL_READ;
+                    cache_state <= `CC_STATE_UNCACHE_AXISTALL_WRITE;
+                end
+            end
+            `CC_STATE_AXIWRITING: begin
+                if(!axib_wr_rdy) begin
+                    if(axib_rd_rdy) begin
+                        cache_state <= `CC_STATE_AXIREADING;
+                    end
+                    else begin
+                        cache_state <= `CC_STATE_AXISTALL_READ;
+                    end
+                end
+                else begin
+                    cache_state <= `CC_STATE_AXIWRITING;
                 end
             end
             `CC_STATE_AXIREADING: begin
@@ -348,37 +410,78 @@ always @(*) begin
                     cache_state <= `CC_STATE_AXILOADING;
                 end
             end
-            `CC_STATE_AXILOADING_LAST: begin
-                if(cpu_rw_en & cache_hit) begin
-                    cache_state <= `CC_STATE_AVAILABLE;
-                end
-                else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
-                    if(axib_rd_rdy) begin
-                        cache_state <= `CC_STATE_AXIREADING;
+            // `CC_STATE_AXILOADING_LAST: begin
+            //     if(cpu_rw_en & cache_hit) begin
+            //         cache_state <= `CC_STATE_AVAILABLE;
+            //     end
+            //     else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
+            //         if(axib_rd_rdy) begin
+            //             cache_state <= `CC_STATE_AXIREADING;
+            //         end
+            //         else begin
+            //             cache_state <= `CC_STATE_AXISTALL_READ;
+            //         end
+            //     end
+            //     else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
+            //         if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
+            //             cache_state <= `CC_STATE_AXIWRITING;
+            //         end
+            //         else if(cache_way_full && cache_replace_dirty) begin
+            //             cache_state <= `CC_STATE_AXISTALL_WRITE;
+            //         end
+            //         else if(axib_rd_rdy) begin
+            //             cache_state <= `CC_STATE_AXIREADING;
+            //         end
+            //         else begin
+            //             cache_state <= `CC_STATE_AXISTALL_READ;
+            //         end
+            //     end
+            //     else begin
+            //         cache_state <= `CC_STATE_AVAILABLE;
+            //     end
+            // end
+            `CC_STATE_UNCACHE_AXIWRITING:begin
+                if(!axib_wr_rdy) begin
+                    if(cpu_rw_en & cache_hit) begin
+                        cache_state <= `CC_STATE_AVAILABLE;
+                    end
+                    else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
+                        if(axib_rd_rdy) begin
+                            cache_state <= `CC_STATE_AXIREADING;
+                        end
+                        else begin
+                            cache_state <= `CC_STATE_AXISTALL_READ;
+                        end
+                    end
+                    else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
+                        if(cpu_uncache && axib_wr_rdy) begin
+                            cache_state <= `CC_STATE_UNCACHE_AXIWRITING;
+                        end
+                        else if(cpu_uncache) begin
+                            cache_state <= `CC_STATE_UNCACHE_AXISTALL_WRITE;
+                        end
+                        else if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
+                            cache_state <= `CC_STATE_AXIWRITING;
+                        end
+                        else if(cache_way_full && cache_replace_dirty) begin
+                            cache_state <= `CC_STATE_AXISTALL_WRITE;
+                        end
+                        else if(axib_rd_rdy) begin
+                            cache_state <= `CC_STATE_AXIREADING;
+                        end
+                        else begin
+                            cache_state <= `CC_STATE_AXISTALL_READ;
+                        end
                     end
                     else begin
-                        cache_state <= `CC_STATE_AXISTALL_READ;
-                    end
-                end
-                else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
-                    if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
-                        cache_state <= `CC_STATE_AXIWRITING;
-                    end
-                    else if(cache_way_full && cache_replace_dirty) begin
-                        cache_state <= `CC_STATE_AXISTALL_WRITE;
-                    end
-                    else if(axib_rd_rdy) begin
-                        cache_state <= `CC_STATE_AXIREADING;
-                    end
-                    else begin
-                        cache_state <= `CC_STATE_AXISTALL_READ;
+                        cache_state <= `CC_STATE_AVAILABLE;
                     end
                 end
                 else begin
-                    cache_state <= `CC_STATE_AVAILABLE;
+                    cache_state <= `CC_STATE_UNCACHE_AXIWRITING;
                 end
             end
-            default: begin
+            default: begin //`CC_STATE_AVAILABLE & `CC_STATE_AXILOADING_LAST & `CC_STATE_UNCACHE_AXIWRITE
                 if(cpu_rw_en & cache_hit) begin
                     cache_state <= `CC_STATE_AVAILABLE;
                 end
@@ -391,7 +494,13 @@ always @(*) begin
                     end
                 end
                 else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
-                    if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
+                    if(cpu_uncache && axib_wr_rdy) begin
+                        cache_state <= `CC_STATE_UNCACHE_AXIWRITING;
+                    end
+                    else if(cpu_uncache) begin
+                        cache_state <= `CC_STATE_UNCACHE_AXISTALL_WRITE;
+                    end
+                    else if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
                         cache_state <= `CC_STATE_AXIWRITING;
                     end
                     else if(cache_way_full && cache_replace_dirty) begin
@@ -544,17 +653,176 @@ always @(posedge clk) begin
         end
     end
     else if(cache_state == `CC_STATE_AVAILABLE 
-        && cpu_rw_op == `CC_CPU_OP_WR && cpu_rw_en) begin
+        && cpu_rw_op == `CC_CPU_OP_WR && cpu_rw_en && !cpu_uncache) begin
         case (cpu_addr_offset)
-            2'd0: cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA0] <= cpu_rw_wdata;
-            2'd1: cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA1] <= cpu_rw_wdata;
-            2'd2: cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA2] <= cpu_rw_wdata;
-            default: cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA3] <= cpu_rw_wdata;
+            2'd0:
+                case (cpu_rw_wsize)
+                    `ACCESS_SZ_WORD: begin
+                        cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA0] <= cpu_rw_wdata;
+                    end
+                    `ACCESS_SZ_HALF: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][15:0] <= cpu_rw_wdata[15:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
+                        end
+                    end
+                    `ACCESS_SZ_BYTE: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][7:0] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b01) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][15:8] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][23:16] <= cpu_rw_wdata[7:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][31:24] <= cpu_rw_wdata[7:0];
+                        end
+                    end
+                endcase
+            2'd1:
+                case (cpu_rw_wsize)
+                    `ACCESS_SZ_WORD: begin
+                        cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA1] <= cpu_rw_wdata;
+                    end
+                    `ACCESS_SZ_HALF: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][47:32] <= cpu_rw_wdata[15:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][63:48] <= cpu_rw_wdata[15:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][63:48] <= cpu_rw_wdata[15:0];
+                        end
+                    end
+                    `ACCESS_SZ_BYTE: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][39:32] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b01) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][47:40] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][55:48] <= cpu_rw_wdata[7:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][63:56] <= cpu_rw_wdata[7:0];
+                        end
+                    end
+                endcase
+            2'd2:
+                case (cpu_rw_wsize)
+                    `ACCESS_SZ_WORD: begin
+                        cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA2] <= cpu_rw_wdata;
+                    end
+                    `ACCESS_SZ_HALF: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][79:64] <= cpu_rw_wdata[15:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][95:80] <= cpu_rw_wdata[15:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][95:80] <= cpu_rw_wdata[15:0];
+                        end
+                    end
+                    `ACCESS_SZ_BYTE: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][71:64] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b01) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][79:72] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][87:80] <= cpu_rw_wdata[7:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][95:88] <= cpu_rw_wdata[7:0];
+                        end
+                    end
+                endcase
+            default:
+                case (cpu_rw_wsize)
+                    `ACCESS_SZ_WORD: begin
+                        cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DATA3] <= cpu_rw_wdata;
+                    end
+                    `ACCESS_SZ_HALF: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][111:96] <= cpu_rw_wdata[15:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][127:112] <= cpu_rw_wdata[15:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][127:112] <= cpu_rw_wdata[15:0];
+                        end
+                    end
+                    `ACCESS_SZ_BYTE: begin
+                        if(cpu_rw_addr[1:0] == 2'b00) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][103:96] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b01) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][111:104] <= cpu_rw_wdata[7:0];
+                        end
+                        else if(cpu_rw_addr[1:0] == 2'b10) begin
+                            cache_ram[cpu_addr_set][cache_hit_way][119:112] <= cpu_rw_wdata[7:0];
+                        end
+                        else begin
+                            cache_ram[cpu_addr_set][cache_hit_way][127:120] <= cpu_rw_wdata[7:0];
+                        end
+                    end
+                endcase
         endcase
         cache_ram[cpu_addr_set][cache_hit_way][`CC_LINE_DIRTY] <= 1;
     end
-    else if(cache_state == `CC_STATE_AXILOADING_LAST) begin
+    else if(cache_state == `CC_STATE_AXILOADING_LAST && !buffer_cpu_uncache) begin
         cache_ram[buffer_cpu_addr_set][buffer_cache_way_to_load] <= {buffer_cpu_addr_tag, 1'b1,buffer_cpu_rw_op==`CC_CPU_OP_WR, axib_ret_data, buffer_shift_load_line[0], buffer_shift_load_line[1], buffer_shift_load_line[2]};
+    end
+end
+
+reg [31:0] ram_wdata;
+always @(*) begin
+    if(buffer_cpu_rw_op==`CC_CPU_OP_WR && load_cnt == buffer_cpu_addr_offset) begin
+        case (buffer_cpu_rw_wsize)
+            `ACCESS_SZ_WORD: begin
+                ram_wdata = buffer_cpu_rw_wdata;
+            end
+            `ACCESS_SZ_HALF: begin
+                if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
+                    ram_wdata = {buffer_cpu_rw_wdata[15:0], axib_ret_data[15:0]};
+                end
+                else begin
+                    ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[15:0]};
+                end
+            end
+            `ACCESS_SZ_BYTE: begin
+                if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
+                    ram_wdata = {buffer_cpu_rw_wdata[7:0], axib_ret_data[23:0]};
+                end
+                else if(buffer_cpu_rw_addr[1:0] == 2'b01) begin
+                    ram_wdata = {axib_ret_data[31:24], buffer_cpu_rw_wdata[7:0], axib_ret_data[15:0]};
+                end
+                else if(buffer_cpu_rw_addr[1:0] == 2'b10) begin                    
+                    ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
+                end
+                else begin
+                    ram_wdata = {axib_ret_data[31:8], buffer_cpu_rw_wdata[7:0]};                    
+                end
+            end
+            default: begin
+                ram_wdata = 32'b0;
+            end
+        endcase
+    end
+    else begin
+        ram_wdata = axib_ret_data;
     end
 end
 
@@ -567,9 +835,7 @@ always @(posedge clk) begin
         buffer_axi_rdata_to_cpu <= 32'b0;
     end
     else if(cache_state == `CC_STATE_AXILOADING) begin
-        buffer_shift_load_line[0] <= (buffer_cpu_rw_op==`CC_CPU_OP_WR && load_cnt == buffer_cpu_addr_offset) 
-                                    ? buffer_cpu_rw_wdata
-                                    : axib_ret_data;
+        buffer_shift_load_line[0] <= ram_wdata;
         buffer_shift_load_line[1] <= buffer_shift_load_line[0];
         buffer_shift_load_line[2] <= buffer_shift_load_line[1];
         buffer_axi_rdata_to_cpu <= (load_cnt == buffer_cpu_addr_offset) 

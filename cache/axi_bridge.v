@@ -76,11 +76,11 @@ module axi_bridge(
 	reg [4:0] b_current_state;	// 写相应状态机
 	reg [4:0] b_next_state;
 	// 地址已经握手成功而未响应的情况，需要计数
-	reg [1:0] ar_resp_cnt;
-	reg [1:0] aw_resp_cnt;
-	reg [1:0] wd_resp_cnt;
+	reg [7:0] ar_resp_cnt;
+	reg [7:0] aw_resp_cnt;
+	reg [7:0] wd_resp_cnt;
 	// 写数据burst传输计数器
-	reg [1:0] wburst_cnt;	// 最多传输4次，即3'b100，只需两位是因为最后一次累加恰好进位溢出，等价于置零
+	reg [7:0] wburst_cnt;	// 最多传输4次，即3'b100，只需两位是因为最后一次累加恰好进位溢出，等价于置零
 	// 数据寄存器，0-指令SRAM寄存器，1-数据SRAM寄存器（根据id索引）
 	reg [31:0] buf_rdata [1:0];
 	// 数据相关的判断信号
@@ -214,7 +214,7 @@ module axi_bridge(
 					w_next_state = W_DATA_RESP;
 			end
 			W_REQ_END:
-				if(bvalid & bvalid & wlast)
+				if(bready & bvalid)
 					w_next_state = IDLE;
 				else
 					w_next_state = W_REQ_END;
@@ -242,7 +242,7 @@ module axi_bridge(
 					b_next_state = IDLE;
 			end
 			B_START:begin
-				if(bready & bvalid & wlast) 
+				if(bready & bvalid) 
 					b_next_state = B_END;
 				else 
 					b_next_state = B_START;
@@ -263,9 +263,9 @@ module axi_bridge(
 	// 写相应通道burst传输计数器
 	always @(posedge aclk) begin
 		if(~aresetn)
-			wburst_cnt <= 2'b0;
+			wburst_cnt <= 8'b0;
 		else if(bvalid & bready)	// 握手成功
-			wburst_cnt <= wburst_cnt + 1'b1;
+			wburst_cnt <= (wburst_cnt + 1'b1) & awlen;
 	end
 //-----------------------------------------read req channel---------------------------------------
 	assign arvalid = ar_current_state[1];
@@ -289,13 +289,13 @@ module axi_bridge(
 //-----------------------------------------read response channel---------------------------------------
     always @(posedge aclk) begin
 		if(~aresetn)
-			ar_resp_cnt <= 2'b0;
+			ar_resp_cnt <= 8'b0;
 		else if(arvalid & arready & rvalid & rready)	// 读地址和数据channel同时完成握手
-			ar_resp_cnt <= ar_resp_cnt;		
+			ar_resp_cnt <= ar_resp_cnt & arlen;		
 		else if(arvalid & arready)
-			ar_resp_cnt <= ar_resp_cnt + 1'b1;
+			ar_resp_cnt <= (ar_resp_cnt + 1'b1) & arlen;
 		else if(rvalid & rready)
-			ar_resp_cnt <= ar_resp_cnt - 1'b1;
+			ar_resp_cnt <= (ar_resp_cnt - 1'b1) & arlen;
 	end
 	assign rready = |r_current_state[2:1];
 //-----------------------------------------write req channel---------------------------------------
@@ -316,7 +316,7 @@ module axi_bridge(
 	end
 //-----------------------------------------write data channel---------------------------------------
     assign wvalid = w_current_state[1] | w_current_state[2];	// W_REQ_START | W_ADDR_RESP
-	assign wlast  = &wburst_cnt;
+	assign wlast  = (&wburst_cnt) | ((!(|awlen)) & wvalid);
 	always  @(posedge aclk) begin
 		if(~aresetn) begin
 			dcache_wr_wstrb_r <= 4'b0;
@@ -344,22 +344,22 @@ module axi_bridge(
     assign bready = w_current_state[4];
 	always @(posedge aclk) begin
 		if(~aresetn) begin
-			aw_resp_cnt <= 2'b0;
+			aw_resp_cnt <= 8'b0;
 		end
 		else if(awvalid & awready)
-			aw_resp_cnt <= aw_resp_cnt + {1'b0, ~(bvalid & bready)};
+			aw_resp_cnt <= (aw_resp_cnt + {1'b0, ~(bvalid & bready)}) & awlen;
 		else if(bvalid & bready) 
-			aw_resp_cnt <= aw_resp_cnt - 1'b1;
+			aw_resp_cnt <= (aw_resp_cnt - 1'b1) & awlen;
 	end
 
 	always @(posedge aclk) begin
 		if(~aresetn) begin
-			wd_resp_cnt <= 2'b0;
+			wd_resp_cnt <= 8'b0;
 		end
 		else if(wvalid & wready)
-			wd_resp_cnt <= wd_resp_cnt + {1'b0, ~(bvalid & bready)};
+			wd_resp_cnt <= (wd_resp_cnt + {1'b0, ~(bvalid & bready)}) & awlen;
 		else if(bvalid & bready) begin
-			wd_resp_cnt <= wd_resp_cnt - 1'b1;
+			wd_resp_cnt <= (wd_resp_cnt - 1'b1) & awlen;
 		end
 	end
 //-----------------------------------------rdata buffer---------------------------------------

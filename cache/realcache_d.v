@@ -1,4 +1,4 @@
-`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\func_test\\myCPU\\defs.v"
 
 module realcache_d (
 //output to CPU
@@ -538,10 +538,10 @@ always @(posedge clk) begin
             end
             `ACCESS_SZ_HALF: begin
                 if(cpu_rw_addr[1:0] == 2'b00) begin
-                    cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
+                    cache_ram[cpu_addr_set][cache_hit_way][15:0] <= cpu_rw_wdata[15:0];
                 end
                 else if(cpu_rw_addr[1:0] == 2'b10) begin
-                    cache_ram[cpu_addr_set][cache_hit_way][15:0] <= cpu_rw_wdata[15:0];
+                    cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
                 end
                 else begin
                     cache_ram[cpu_addr_set][cache_hit_way][31:16] <= cpu_rw_wdata[15:0];
@@ -549,16 +549,16 @@ always @(posedge clk) begin
             end
             `ACCESS_SZ_BYTE: begin
                 if(cpu_rw_addr[1:0] == 2'b00) begin
-                    cache_ram[cpu_addr_set][cache_hit_way][31:24] <= cpu_rw_wdata[7:0];
+                    cache_ram[cpu_addr_set][cache_hit_way][7:0] <= cpu_rw_wdata[7:0];
                 end
                 else if(cpu_rw_addr[1:0] == 2'b01) begin
-                    cache_ram[cpu_addr_set][cache_hit_way][23:16] <= cpu_rw_wdata[7:0];
-                end
-                else if(cpu_rw_addr[1:0] == 2'b10) begin
                     cache_ram[cpu_addr_set][cache_hit_way][15:8] <= cpu_rw_wdata[7:0];
                 end
+                else if(cpu_rw_addr[1:0] == 2'b10) begin
+                    cache_ram[cpu_addr_set][cache_hit_way][23:16] <= cpu_rw_wdata[7:0];
+                end
                 else begin
-                    cache_ram[cpu_addr_set][cache_hit_way][7:0] <= cpu_rw_wdata[7:0];
+                    cache_ram[cpu_addr_set][cache_hit_way][31:24] <= cpu_rw_wdata[7:0];
                 end
             end
         endcase
@@ -581,24 +581,24 @@ always @(*) begin
             end
             `ACCESS_SZ_HALF: begin
                 if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
-                    ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[15:0]};
+                    ram_wdata = {buffer_cpu_rw_wdata[15:0], axib_ret_data[15:0]};
                 end
                 else begin
-                    ram_wdata = {buffer_cpu_rw_wdata[15:0], axib_ret_data[15:0]};
+                    ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[15:0]};
                 end
             end
             `ACCESS_SZ_BYTE: begin
                 if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
-                    ram_wdata = {axib_ret_data[31:8], buffer_cpu_rw_wdata[7:0]};
+                    ram_wdata = {buffer_cpu_rw_wdata[7:0], axib_ret_data[23:0]};
                 end
                 else if(buffer_cpu_rw_addr[1:0] == 2'b01) begin
+                    ram_wdata = {axib_ret_data[31:24], buffer_cpu_rw_wdata[7:0], axib_ret_data[15:0]};
+                end
+                else if(buffer_cpu_rw_addr[1:0] == 2'b10) begin                    
                     ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
                 end
-                else if(buffer_cpu_rw_addr[1:0] == 2'b10) begin
-                    ram_wdata = {axib_ret_data[31:24], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
-                end
                 else begin
-                    ram_wdata = {buffer_cpu_rw_wdata[7:0], axib_ret_data[23:0]};
+                    ram_wdata = {axib_ret_data[31:8], buffer_cpu_rw_wdata[7:0]};                    
                 end
             end
             default: begin

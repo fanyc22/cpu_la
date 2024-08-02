@@ -1,4 +1,4 @@
-`include "C:\\Users\\Lenovo\\Desktop\\cdp_ede_local-nscscc\\myCPU\\defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\func_test\\myCPU\\defs.v"
 
 module mycpu_top(
     input  [7:0] ext_int,
@@ -240,7 +240,7 @@ realcache U_icache(
     .clk(aclk),
     .rst_n(aresetn));
 
-realcache_d U_dcache(
+realcache U_dcache(
     .output_rdata(dcache_rdata),
     .output_rdata_valid(dcache_rdata_valid),
     .output_wdata_valid(dcache_wdata_valid),
