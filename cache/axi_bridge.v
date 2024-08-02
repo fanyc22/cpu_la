@@ -310,7 +310,7 @@ module axi_bridge(
 		end
 		else if(w_current_state[0]) begin	// 写请求状态机为空闲状态，更新数据
 			awaddr <= dcache_wr_addr;
-			// awsize <= {1'b0, dcache_wr_type[1:0]};
+			awsize <= {1'b0, dcache_wr_type[1:0]};
 			awlen[1:0] <= {2{dcache_wr_type[2]}};
 		end
 	end
@@ -337,6 +337,7 @@ module axi_bridge(
 			wid   <= 4'b1;
 		end
 		else if(b_current_state[2:1]) begin	
+            wstrb <= dcache_wr_wstrb_r;
 			wdata <= dcache_wr_data_r[31:0];
 		end
 	end
