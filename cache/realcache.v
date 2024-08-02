@@ -115,7 +115,7 @@ reg [1:0] load_cnt;
 // reg axi_reading;
 // reg [1:0] axi_op_reg;
 
-reg buffer_axi_rdata_to_cpu;
+// reg buffer_axi_rdata_to_cpu;
 reg [31:0] buffer_uncache_rdata;
 
 always @(posedge clk) begin
@@ -832,16 +832,23 @@ always @(posedge clk) begin
         buffer_shift_load_line[1] <= 32'b0;
         buffer_shift_load_line[2] <= 32'b0;
         load_cnt <= 2'd0;
-        buffer_axi_rdata_to_cpu <= 32'b0;
+        // buffer_axi_rdata_to_cpu <= 32'b0;
     end
     else if(cache_state == `CC_STATE_AXILOADING) begin
         buffer_shift_load_line[0] <= ram_wdata;
         buffer_shift_load_line[1] <= buffer_shift_load_line[0];
         buffer_shift_load_line[2] <= buffer_shift_load_line[1];
-        buffer_axi_rdata_to_cpu <= (load_cnt == buffer_cpu_addr_offset) 
-                                    ? axib_ret_data
-                                    : buffer_axi_rdata_to_cpu;
-        load_cnt <= load_cnt + 1;
+        // buffer_axi_rdata_to_cpu <= (load_cnt == buffer_cpu_addr_offset) 
+                                    // ? axib_ret_data
+                                    // : buffer_axi_rdata_to_cpu;
+        load_cnt <= load_cnt + 2'b01;
+    end
+    else begin
+        buffer_shift_load_line[0] <= 32'b0;
+        buffer_shift_load_line[1] <= 32'b0;
+        buffer_shift_load_line[2] <= 32'b0;
+        load_cnt <= 2'd0;
+        // buffer_axi_rdata_to_cpu <= 32'b0;
     end
 end
 
