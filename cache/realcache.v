@@ -278,15 +278,37 @@ always @(*) begin
                             cache_replace_line;
         end
         else if(cache_state == `CC_STATE_UNCACHE_AXIWRITING && axib_wr_rdy) begin
-            axib_wr_req <= 1;
-            axib_wr_type <= 3'b000;
-            axib_wr_addr <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
-                            buffer_cpu_rw_addr:
-                            cpu_rw_addr; 
-            axib_wr_wstrb <= 4'b1111;
-            axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
-                            {96'd0 ,buffer_cpu_rw_wdata}:
-                            {96'd0 ,cpu_rw_wdata}; 
+            // axib_wr_req <= 1;
+            // axib_wr_type <= 3'b000;
+            // axib_wr_addr <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
+            //                 buffer_cpu_rw_addr:
+            //                 cpu_rw_addr; 
+            // axib_wr_wstrb <= 4'b1111;
+            // axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
+            //                 {96'd0 ,buffer_cpu_rw_wdata}:
+            //                 {96'd0 ,cpu_rw_wdata}; 
+            if(cache_last_state == `CC_STATE_AXISTALL_WRITE) begin
+                axib_wr_req <= 1;
+                axib_wr_type <= (buffer_cpu_rw_wsize == `ACCESS_SZ_WORD) ? 3'b010
+                                : (buffer_cpu_rw_wsize == `ACCESS_SZ_HALF) ? 3'b001
+                                : 3'b000;
+                axib_wr_addr <= buffer_cpu_rw_addr;
+                axib_wr_wstrb <= (buffer_cpu_rw_wsize == `ACCESS_SZ_WORD) ? 4'b1111
+                                : (buffer_cpu_rw_wsize == `ACCESS_SZ_HALF) ? 4'b0011
+                                : 4'b0001;
+                axib_wr_data <= {96'd0, buffer_cpu_rw_wdata};
+            end
+            else begin
+                axib_wr_req <= 1;
+                axib_wr_type <= (cpu_rw_wsize == `ACCESS_SZ_WORD) ? 3'b010
+                                : (cpu_rw_wsize == `ACCESS_SZ_HALF) ? 3'b001
+                                : 3'b000;
+                axib_wr_addr <= cpu_rw_addr;
+                axib_wr_wstrb <= (cpu_rw_wsize == `ACCESS_SZ_WORD) ? 4'b1111
+                                : (cpu_rw_wsize == `ACCESS_SZ_HALF) ? 4'b0011
+                                : 4'b0001;
+                axib_wr_data <= {96'd0, cpu_rw_wdata};
+            end
         end
         else begin
             axib_wr_req <= 0;
