@@ -196,19 +196,19 @@ module axi_bridge(
 				if(awvalid & awready & wvalid & wready | (|aw_resp_cnt)&(|wd_resp_cnt))
 					w_next_state = W_REQ_END;
 				else if(awvalid & awready | (|aw_resp_cnt))
-					w_next_state = W_DATA_RESP;
+					w_next_state = W_ADDR_RESP;
 				else if(wvalid & wready | (|wd_resp_cnt))
 					w_next_state = W_DATA_RESP;
 				else
 					w_next_state = W_REQ_START;
 			W_ADDR_RESP:begin
-				if(awvalid & awready) 
-					w_next_state = W_DATA_RESP;
+				if(wvalid & wready) 
+					w_next_state = W_REQ_END;
 				else 
 					w_next_state = W_ADDR_RESP;
 			end
 			W_DATA_RESP:begin
-				if(wvalid & wready & wlast)
+				if(awvalid & awready)
 					w_next_state = W_REQ_END;
 				else
 					w_next_state = W_DATA_RESP;
@@ -299,7 +299,7 @@ module axi_bridge(
 	end
 	assign rready = |r_current_state[2:1];
 //-----------------------------------------write req channel---------------------------------------
-	assign awvalid = w_current_state[1];	// W_REQ_START | W_DATA_RESP
+	assign awvalid = w_current_state[1] | w_current_state[3];	// W_REQ_START | W_DATA_RESP
 
 	always  @(posedge aclk) begin
 		if(~aresetn) begin
@@ -315,8 +315,8 @@ module axi_bridge(
 		end
 	end
 //-----------------------------------------write data channel---------------------------------------
-    assign wvalid = w_current_state[3];	// W_REQ_START | W_ADDR_RESP
-	assign wlast  = (&(wd_resp_cnt|(~awlen))) | ((!(|awlen)) & wvalid);
+    assign wvalid = w_current_state[1] | w_current_state[2];	// W_REQ_START | W_ADDR_RESP
+	assign wlast  = (&wburst_cnt) | ((!(|awlen)) & wvalid);
 	always  @(posedge aclk) begin
 		if(~aresetn) begin
 			dcache_wr_wstrb_r <= 4'b0;
@@ -336,7 +336,7 @@ module axi_bridge(
 			wdata <= 32'b0;
 			wid   <= 4'b1;
 		end
-		else if(w_next_state[3]) begin	
+		else if(b_current_state[2:1]) begin	
             wstrb <= dcache_wr_wstrb_r;
 			wdata <= dcache_wr_data_r[31:0];
 		end
@@ -358,9 +358,9 @@ module axi_bridge(
 			wd_resp_cnt <= 8'b0;
 		end
 		else if(wvalid & wready)
-			wd_resp_cnt <= (wd_resp_cnt + 8'b1) & awlen;
+			wd_resp_cnt <= (wd_resp_cnt + {1'b0, ~(bvalid & bready)}) & awlen;
 		else if(bvalid & bready) begin
-			wd_resp_cnt <= 8'b0;
+			wd_resp_cnt <= (wd_resp_cnt - 1'b1) & awlen;
 		end
 	end
 //-----------------------------------------rdata buffer---------------------------------------

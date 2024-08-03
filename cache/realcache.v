@@ -287,7 +287,7 @@ always @(*) begin
             // axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
             //                 {96'd0 ,buffer_cpu_rw_wdata}:
             //                 {96'd0 ,cpu_rw_wdata}; 
-            if(cache_last_state == `CC_STATE_AXISTALL_WRITE) begin
+            if(cache_last_state == `CC_STATE_UNCACHE_AXISTALL_WRITE) begin
                 axib_wr_req <= 1;
                 axib_wr_type <= (buffer_cpu_rw_wsize == `ACCESS_SZ_WORD) ? 3'b010
                                 : (buffer_cpu_rw_wsize == `ACCESS_SZ_HALF) ? 3'b001
