@@ -326,7 +326,7 @@ module axi_bridge(
 			dcache_wr_wstrb_r <= dcache_wr_wstrb;
 			dcache_wr_data_r <= dcache_wr_data;
 		end
-		else if(bvalid & bready) begin	
+		else if(wvalid & wready) begin	
 			dcache_wr_data_r <= {32'b0, dcache_wr_data_r[127:32]};
 		end
 	end
