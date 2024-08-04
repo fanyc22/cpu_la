@@ -39,21 +39,21 @@ module bp_top(
         rst_n
     );
 
-    parameter BTB_WIDTH = 37; // validbit:1, Tag:2, target:32
-    parameter BTB_WAY_BIT = 4;  // 16-way set associative, =tag bit
-    parameter BTB_WAY = 16;
-    parameter BTB_GROUP_BIT = 6; // 64 groups, =index bit
-    parameter BTB_GROUP = 64;
-    parameter VALID_BIT = 36;
-    parameter TAG_MSB = 35;
+    parameter BTB_WIDTH = 36; // validbit:1, Tag:2, target:32
+    parameter BTB_WAY_BIT = 3;  // 16-way set associative, =tag bit
+    parameter BTB_WAY = 8;
+    parameter BTB_GROUP_BIT = 5; // 64 groups, =index bit
+    parameter BTB_GROUP = 32;
+    parameter VALID_BIT = 35;
+    parameter TAG_MSB = 34;
     parameter TAG_LSB = 32;
     parameter TARGET_BIT = 32;
 
     parameter BHR_WIDTH = 4; // BHT PHT size: 16
     parameter BHT_BIT = 5; // BHT: 128 BHR
 
-    parameter GHR_WIDTH = 8; // GHR PHT size: 256
-    parameter CPHT_PC_BIT = 8;
+    parameter GHR_WIDTH = 6; // GHR PHT size: 256
+    parameter CPHT_PC_BIT = 4;
 
     input wire [31:0] if1_pc;
     input wire [31:0] ex_pc;
