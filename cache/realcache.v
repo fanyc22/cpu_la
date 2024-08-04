@@ -1,6 +1,4 @@
 `include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\func_test\\myCPU\\defs.v"
-`define CONF_ADDR_BASE 32'h1faf_0000
-`define CONF_ADDR_MASK 32'h1fff_0000 //for bfaf or 1faf
 
 module realcache (
 //output to CPU

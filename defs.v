@@ -236,3 +236,6 @@
 
 `define CC_CPU_OP_RD  1'b0
 `define CC_CPU_OP_WR  1'b1
+
+`define CONF_ADDR_BASE 32'h1faf_0000
+`define CONF_ADDR_MASK 32'h1fff_0000 //for bfaf or 1faf
