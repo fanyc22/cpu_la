@@ -1,4 +1,4 @@
-`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\func_test\\myCPU\\defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\perf_test\\soc_axi_perf\\rtl\\myCPU\\defs.v"
 //LLBit is fake
 module csr (
 //output
@@ -382,6 +382,19 @@ always @(posedge clk) begin
         csr_reg[`CSR_DMW0][5:3] <= ((csr_wdata[5:3] & csr_wmask[5:3]) | (csr_reg[`CSR_DMW0][5:3] & ~csr_wmask[5:3]));
         csr_reg[`CSR_DMW0][27:25] <= ((csr_wdata[27:25] & csr_wmask[27:25]) | (csr_reg[`CSR_DMW0][27:25] & ~csr_wmask[27:25]));
         csr_reg[`CSR_DMW0][31:29] <= ((csr_wdata[31:29] & csr_wmask[31:29]) | (csr_reg[`CSR_DMW0][31:29] & ~csr_wmask[31:29]));
+    end
+end
+
+//DMW1
+always @(posedge clk) begin
+    if(!rst_n) begin
+        csr_reg[`CSR_DMW1] <= 32'h0000_0000;
+    end
+    else if(csr_we && csr_addr == `CSR_DMW1) begin
+        csr_reg[`CSR_DMW1][0] <= ((csr_wdata[0] & csr_wmask[0]) | (csr_reg[`CSR_DMW1][0] & ~csr_wmask[0]));
+        csr_reg[`CSR_DMW1][5:3] <= ((csr_wdata[5:3] & csr_wmask[5:3]) | (csr_reg[`CSR_DMW1][5:3] & ~csr_wmask[5:3]));
+        csr_reg[`CSR_DMW1][27:25] <= ((csr_wdata[27:25] & csr_wmask[27:25]) | (csr_reg[`CSR_DMW1][27:25] & ~csr_wmask[27:25]));
+        csr_reg[`CSR_DMW1][31:29] <= ((csr_wdata[31:29] & csr_wmask[31:29]) | (csr_reg[`CSR_DMW1][31:29] & ~csr_wmask[31:29]));
     end
 end
 

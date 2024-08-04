@@ -1,4 +1,4 @@
-`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\func_test\\myCPU\\defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\perf_test\\soc_axi_perf\\rtl\\myCPU\\defs.v"
 
 module realcache (
 //output to CPU
@@ -331,10 +331,10 @@ end
 
 always @(*) begin
     if(!rst_n) begin
-        cache_last_state <= `CC_STATE_AVAILABLE;
+        cache_state <= `CC_STATE_AVAILABLE;
     end
     else if(cpu_flush) begin
-        cache_last_state <= `CC_STATE_FLUSH;
+        cache_state <= `CC_STATE_FLUSH;
     end
     else begin
         case (cache_last_state)
