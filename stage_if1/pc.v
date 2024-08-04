@@ -61,7 +61,12 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-    pc_reg <= pc_next;
+    if(!rst_n) begin
+        pc_reg <= PC_INITIAL;
+    end
+    else begin
+        pc_reg <= pc_next;
+    end
 end
 
 always @(*) begin
