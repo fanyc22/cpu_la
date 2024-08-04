@@ -587,16 +587,16 @@ end
 
 //cache_way_to_replace
 //TBD
-assign cache_way_to_replace = 2'd0;
-// lru U_lru(
-//     .clk(clk),
-//     .rst_n(rst_n),
-//     .cpu_rw_en(cpu_rw_en),
-//     .cpu_addr_set(cpu_addr_set),
-//     .cpu_uncache(cpu_uncache),
-//     .cache_hit(cache_hit),
-//     .cache_hit_way(cache_hit_way),
-//     .cache_way_to_replace(cache_way_to_replace));
+// assign cache_way_to_replace = 2'd0;
+lru U_lru(
+    .clk(clk),
+    .rst_n(rst_n),
+    .cpu_rw_en(cpu_rw_en),
+    .cpu_addr_set(cpu_addr_set),
+    .cpu_uncache(cpu_uncache),
+    .cache_hit(cache_hit),
+    .cache_hit_way(cache_hit_way),
+    .cache_way_to_replace(cache_way_to_replace));
 
 //cache_replace_dirty
 assign cache_replace_dirty = cache_ram[cpu_addr_set][cache_way_to_replace][`CC_LINE_DIRTY];
