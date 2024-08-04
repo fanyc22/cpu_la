@@ -1,4 +1,4 @@
-`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\perf_test\\soc_axi_perf\\rtl\\myCPU\\defs.v"
+`include "C:\\Users\\Lenovo\\Desktop\\nscscc-team-la32r\\func_test\\myCPU\\defs.v"
 module gr (
 //output
             rdata1,
