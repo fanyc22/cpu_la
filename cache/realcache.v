@@ -227,7 +227,7 @@ end
 always @(*) begin
     if(!rst_n)begin
         axib_rd_req <= 0;
-        axib_rd_type <= 2'b00;
+        axib_rd_type <= 3'b00;
         axib_rd_addr <= 32'b0;
     end
     else begin
@@ -237,12 +237,12 @@ always @(*) begin
             // axib_rd_addr <= (cache_last_state==`CC_STATE_AXISTALL_READ) ? 
             //                 {buffer_cpu_rw_addr[31:4], 4'b0} :
             //                 {cpu_rw_addr[31:4], 4'b0};
-            if(cache_last_state == `CC_STATE_AXISTALL_READ) begin
-                axib_rd_type <= buffer_cpu_uncache? 3'b000 : 3'b111;
+            if(cache_last_state == `CC_STATE_AXISTALL_READ || cache_last_state == `CC_STATE_AXIWRITING) begin
+                axib_rd_type <= buffer_cpu_uncache? 3'b000 : 3'b110;
                 axib_rd_addr <= buffer_cpu_uncache?  {buffer_cpu_rw_addr[31:2], 2'b0} : {buffer_cpu_rw_addr[31:4], 4'b0};
             end
             else begin
-                axib_rd_type <= cpu_uncache? 3'b000 : 3'b111;
+                axib_rd_type <= cpu_uncache? 3'b000 : 3'b110;
                 axib_rd_addr <= cpu_uncache? {cpu_rw_addr[31:2], 2'b0} : {cpu_rw_addr[31:4], 4'b0};
             end
         end
@@ -266,12 +266,12 @@ always @(*) begin
     else begin
         if(cache_state == `CC_STATE_AXIWRITING && axib_wr_rdy) begin
             axib_wr_req <= 1;
-            axib_wr_type <= 3'b111;
-            axib_wr_addr <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
+            axib_wr_type <= 3'b110;
+            axib_wr_addr <= (cache_last_state == `CC_STATE_AXISTALL_WRITE || cache_last_state == `CC_STATE_AXIWRITING) ? 
                             buffer_cache_replace_addr : 
                             cache_replace_addr;
             axib_wr_wstrb <= 4'b1111;
-            axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
+            axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE || cache_last_state == `CC_STATE_AXIWRITING) ? 
                             buffer_cache_replace_line : 
                             cache_replace_line;
         end
@@ -285,7 +285,7 @@ always @(*) begin
             // axib_wr_data <= (cache_last_state == `CC_STATE_AXISTALL_WRITE) ? 
             //                 {96'd0 ,buffer_cpu_rw_wdata}:
             //                 {96'd0 ,cpu_rw_wdata}; 
-            if(cache_last_state == `CC_STATE_UNCACHE_AXISTALL_WRITE) begin
+            if(cache_last_state == `CC_STATE_UNCACHE_AXISTALL_WRITE || cache_last_state == `CC_STATE_UNCACHE_AXIWRITING) begin
                 axib_wr_req <= 1;
                 axib_wr_type <= (buffer_cpu_rw_wsize == `ACCESS_SZ_WORD) ? 3'b010
                                 : (buffer_cpu_rw_wsize == `ACCESS_SZ_HALF) ? 3'b001
@@ -403,13 +403,25 @@ always @(*) begin
                         cache_state <= `CC_STATE_AVAILABLE;
                     end
                     else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
-                        if(axib_rd_rdy) begin
+                        if(cpu_uncache && axib_rd_rdy) begin
+                            cache_state <= `CC_STATE_AXIREADING;
+                        end
+                        else if(cpu_uncache) begin
+                            cache_state <= `CC_STATE_AXISTALL_READ;
+                        end
+                        else if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
+                            cache_state <= `CC_STATE_AXIWRITING;
+                        end
+                        else if(cache_way_full && cache_replace_dirty) begin
+                            cache_state <= `CC_STATE_AXISTALL_WRITE;
+                        end
+                        else if(axib_rd_rdy) begin
                             cache_state <= `CC_STATE_AXIREADING;
                         end
                         else begin
                             cache_state <= `CC_STATE_AXISTALL_READ;
                         end
-                    end
+                    end                    
                     else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_WR) begin
                         if(cpu_uncache && axib_wr_rdy) begin
                             cache_state <= `CC_STATE_UNCACHE_AXIWRITING;
@@ -443,7 +455,19 @@ always @(*) begin
                     cache_state <= `CC_STATE_AVAILABLE;
                 end
                 else if(cpu_rw_en && cpu_rw_op == `CC_CPU_OP_RD) begin
-                    if(axib_rd_rdy) begin
+                    if(cpu_uncache && axib_rd_rdy) begin
+                        cache_state <= `CC_STATE_AXIREADING;
+                    end
+                    else if(cpu_uncache) begin
+                        cache_state <= `CC_STATE_AXISTALL_READ;
+                    end
+                    else if(cache_way_full && cache_replace_dirty && axib_wr_rdy) begin
+                        cache_state <= `CC_STATE_AXIWRITING;
+                    end
+                    else if(cache_way_full && cache_replace_dirty) begin
+                        cache_state <= `CC_STATE_AXISTALL_WRITE;
+                    end
+                    else if(axib_rd_rdy) begin
                         cache_state <= `CC_STATE_AXIREADING;
                     end
                     else begin

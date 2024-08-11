@@ -1,4 +1,4 @@
-`include "defs.v"
+`include "../defs.v"
 module pc(/*autoport*/
 //output
       pc_reg,
