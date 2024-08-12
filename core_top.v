@@ -1,7 +1,7 @@
 `include "./defs.v"
 
 module core_top(
-    input  [7:0] ext_int,
+    input  [7:0] intrpt,
     input  aclk   ,
     input  aresetn,
     // read req channel
