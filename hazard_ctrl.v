@@ -383,6 +383,26 @@ always @(*) begin
         mm1_mm2_wen <= 1;
         mm2_wb_wen <= 1;
     end
+    else if(bp_fault) begin
+        pc_wen <= 1;
+        pc_is_wrong <= 1;
+        pc_correct <= ex_branch ? ex_pc_branch : ex_pc + 32'd4;
+
+        if1_if2_flush <= 1;
+        if2_id_flush <= 1;
+        id_ex_flush <= 1;
+        ex_mm1_flush <= 0;
+        mm1_mm2_flush <= 0;
+        mm2_wb_flush <= 0;
+
+        if1_if2_wen <= 1;
+        if2_id_wen <= 1;
+        id_ex_wen <= 1;
+        id_ex_bp_flush <= 0;
+        ex_mm1_wen <= 1;
+        mm1_mm2_wen <= 1;
+        mm2_wb_wen <= 1;
+    end
     else if(csrau) begin
         pc_wen <= 0;
         pc_is_wrong <= 0;
@@ -417,26 +437,6 @@ always @(*) begin
 
         if1_if2_wen <= 0;
         if2_id_wen <= 0;
-        id_ex_wen <= 1;
-        id_ex_bp_flush <= 0;
-        ex_mm1_wen <= 1;
-        mm1_mm2_wen <= 1;
-        mm2_wb_wen <= 1;
-    end
-    else if(bp_fault) begin
-        pc_wen <= 1;
-        pc_is_wrong <= 1;
-        pc_correct <= ex_branch ? ex_pc_branch : ex_pc + 32'd4;
-
-        if1_if2_flush <= 1;
-        if2_id_flush <= 1;
-        id_ex_flush <= 1;
-        ex_mm1_flush <= 0;
-        mm1_mm2_flush <= 0;
-        mm2_wb_flush <= 0;
-
-        if1_if2_wen <= 1;
-        if2_id_wen <= 1;
         id_ex_wen <= 1;
         id_ex_bp_flush <= 0;
         ex_mm1_wen <= 1;
