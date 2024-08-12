@@ -166,6 +166,7 @@ reg ex_csr_we;
 reg soft_int_gened;
 
 wire [31:0] mm2_rdata;
+wire [31:0] mm2_rdata_for_fwd;
 wire mm2_hit;
 wire mm2_dcache_miss;
 wire mm2_csr_we;
@@ -400,7 +401,7 @@ fwd U_fwd_j(
         .reg_from_ex(ex_exe_out),
         .reg_from_mm1(ex_mm1.exe_out),
         .reg_from_mm2(mm1_mm2.exe_out),
-        .mem_from_mm2(mm2_rdata),
+        .mem_from_mm2(mm2_rdata_for_fwd),
         .reg_from_wb(wb_gr_wdata_include_csr),
         .fwd_ctrl(fwd_src_j));
 
@@ -410,7 +411,7 @@ fwd U_fwd_k(
         .reg_from_ex(ex_exe_out),
         .reg_from_mm1(ex_mm1.exe_out),
         .reg_from_mm2(mm1_mm2.exe_out),
-        .mem_from_mm2(mm2_rdata),
+        .mem_from_mm2(mm2_rdata_for_fwd),
         .reg_from_wb(wb_gr_wdata_include_csr),
         .fwd_ctrl(fwd_src_k));
 
@@ -420,7 +421,7 @@ fwd U_fwd_d(
         .reg_from_ex(ex_exe_out),
         .reg_from_mm1(ex_mm1.exe_out),
         .reg_from_mm2(mm1_mm2.exe_out),
-        .mem_from_mm2(mm2_rdata),
+        .mem_from_mm2(mm2_rdata_for_fwd),
         .reg_from_wb(wb_gr_wdata_include_csr),
         .fwd_ctrl(fwd_src_d));
 
@@ -630,6 +631,9 @@ assign data_cache_waddr = ex_mm1.mm_addr;
 assign data_cache_wdata = ex_mm1.mm_wdata;
 assign data_cache_access_sz = ex_mm1.mm_access_sz;
 assign mm2_rdata = data_cache_rdata >> {mm1_mm2.mm_addr[1:0], 3'b000};
+assign mm2_rdata_for_fwd = (mm1_mm2.mm_access_sz == `ACCESS_SZ_BYTE) ? {24'b0, mm2_rdata[7:0]} :
+                            (mm1_mm2.mm_access_sz == `ACCESS_SZ_HALF) ? {16'b0, mm2_rdata[15:0]} :
+                            mm2_rdata;
 assign mm2_hit = data_cache_hit;
 
 assign data_cache_flush = mm1_mm2_flush;
