@@ -785,7 +785,7 @@ always @(*) begin
                 ram_wdata = buffer_cpu_rw_wdata;
             end
             `ACCESS_SZ_HALF: begin
-                if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
+                if(buffer_cpu_rw_addr[1:0] == 2'b10) begin
                     ram_wdata = {buffer_cpu_rw_wdata[15:0], axib_ret_data[15:0]};
                 end
                 else begin
@@ -793,13 +793,13 @@ always @(*) begin
                 end
             end
             `ACCESS_SZ_BYTE: begin
-                if(buffer_cpu_rw_addr[1:0] == 2'b00) begin
+                if(buffer_cpu_rw_addr[1:0] == 2'b11) begin
                     ram_wdata = {buffer_cpu_rw_wdata[7:0], axib_ret_data[23:0]};
                 end
-                else if(buffer_cpu_rw_addr[1:0] == 2'b01) begin
+                else if(buffer_cpu_rw_addr[1:0] == 2'b10) begin
                     ram_wdata = {axib_ret_data[31:24], buffer_cpu_rw_wdata[7:0], axib_ret_data[15:0]};
                 end
-                else if(buffer_cpu_rw_addr[1:0] == 2'b10) begin                    
+                else if(buffer_cpu_rw_addr[1:0] == 2'b01) begin                    
                     ram_wdata = {axib_ret_data[31:16], buffer_cpu_rw_wdata[7:0], axib_ret_data[7:0]};
                 end
                 else begin
