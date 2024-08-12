@@ -166,7 +166,7 @@ reg ex_csr_we;
 reg soft_int_gened;
 
 wire [31:0] mm2_rdata;
-wire [31:0] mm2_rdata_for_fwd;
+reg [31:0] mm2_rdata_for_fwd;
 wire mm2_hit;
 wire mm2_dcache_miss;
 wire mm2_csr_we;
