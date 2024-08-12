@@ -1,6 +1,6 @@
 `include "./defs.v"
 
-module mycpu_top(
+module core_top(
     input  [7:0] ext_int,
     input  aclk   ,
     input  aresetn,
@@ -46,11 +46,18 @@ module mycpu_top(
     input         bvalid , // 写请求响应有效
     output        bready , // Master端准备好接收响应信号
     // trace debug interface
-    output wire [31:0] debug_wb_pc,
-    output wire [ 3:0] debug_wb_rf_we,
-    output wire [ 4:0] debug_wb_rf_wnum,
-    output wire [31:0] debug_wb_rf_wdata
-);
+    output wire [31:0] debug0_wb_pc,
+    output wire [ 3:0] debug0_wb_rf_wen,
+    output wire [ 4:0] debug0_wb_rf_wnum,
+    output wire [31:0] debug0_wb_rf_wdata,
+    input wire break_point,
+    input wire infor_flag,
+    input wire [4:0] reg_num,
+    output wire ws_valid,
+    output wire [31:0] rf_rdata);
+
+assign ws_valid = 1'b0;
+assign rf_rdata = 32'h0;
 
 wire inst_cache_re;
 wire [31:0] inst_cache_raddr;
@@ -162,10 +169,10 @@ core U_core (
             .data_cache_access_sz(data_cache_access_sz),
             .data_cache_flush(data_cache_flush),
 
-            .debug_wb_pc(debug_wb_pc),
-            .debug_wb_rf_we(debug_wb_rf_we),
-            .debug_wb_rf_wnum(debug_wb_rf_wnum),
-            .debug_wb_rf_wdata(debug_wb_rf_wdata),
+            .debug_wb_pc(debug0_wb_pc),
+            .debug_wb_rf_we(debug0_wb_rf_wen),
+            .debug_wb_rf_wnum(debug0_wb_rf_wnum),
+            .debug_wb_rf_wdata(debug0_wb_rf_wdata),
 //input
             .inst_cache_rdata(inst_cache_rdata),
             .inst_cache_hit(inst_cache_hit),
