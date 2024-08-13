@@ -196,14 +196,19 @@
 `define CC_WAY_BIT_WIDTH  2
 `define CC_SET_BIT_WIDTH  7
 `define CC_TAG_BIT_WIDTH  21
+`define CC_SET_BIT_WIDTH_D  7
+`define CC_TAG_BIT_WIDTH_D  21
 `define CC_OFFSET_SIZE  4
 `define CC_LINE_SIZE  4
 `define CC_WAY_SIZE  4
 `define CC_SET_SIZE  128
+`define CC_SET_SIZE_D  128
 // `define CC_TAG_SIZE  262144
 
 `define CC_LINE_WIDTH 151
 `define CC_LINE_TAG 150:130
+`define CC_LINE_WIDTH_D 151
+`define CC_LINE_TAG_D 150:130
 `define CC_LINE_VALID 129
 `define CC_LINE_DIRTY 128
 `define CC_LINE_DATA3 127:96
@@ -213,6 +218,8 @@
 
 `define CC_ADDR_TAG 31:11
 `define CC_ADDR_SET 10:4
+`define CC_ADDR_TAG_D 31:11
+`define CC_ADDR_SET_D 10:4
 `define CC_ADDR_OFFSET 3:2
 
 `define CC_AXI_OP_RD  1'b0

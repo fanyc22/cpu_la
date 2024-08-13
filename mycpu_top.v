@@ -240,7 +240,7 @@ realcache U_icache(
     .clk(aclk),
     .rst_n(aresetn));
 
-realcache U_dcache(
+realcache_d U_dcache(
     .output_rdata(dcache_rdata),
     .output_rdata_valid(dcache_rdata_valid),
     .output_wdata_valid(dcache_wdata_valid),

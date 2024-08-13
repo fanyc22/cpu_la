@@ -1,6 +1,6 @@
 `include "../defs.v"
 
-module realcache (
+module realcache_d (
 //output to CPU
     output_rdata,
     output_rdata_valid,
@@ -74,7 +74,7 @@ output reg [127:0] axib_wr_data;
 input wire axib_wr_rdy;
 
 //internal signals
-reg [`CC_LINE_WIDTH-1:0] cache_ram [`CC_SET_SIZE-1:0][`CC_WAY_SIZE-1:0];
+reg [`CC_LINE_WIDTH_D-1:0] cache_ram [`CC_SET_SIZE_D-1:0][`CC_WAY_SIZE-1:0];
 
 reg cache_hit;
 reg cache_way_full;
@@ -87,16 +87,16 @@ reg [`CC_WAY_BIT_WIDTH-1:0] cache_hit_way;
 reg [3:0] cache_last_state;
 reg [3:0] cache_state;
 
-reg [`CC_SET_BIT_WIDTH-1:0] cpu_addr_set;
-reg [`CC_TAG_BIT_WIDTH-1:0] cpu_addr_tag;
+reg [`CC_SET_BIT_WIDTH_D-1:0] cpu_addr_set;
+reg [`CC_TAG_BIT_WIDTH_D-1:0] cpu_addr_tag;
 reg [`CC_OFFSET_BIT_WIDTH-1:0] cpu_addr_offset;
 wire cpu_uncache;
 
 reg buffer_cpu_rw_en;
 reg buffer_cpu_rw_op;
 reg [31:0] buffer_cpu_rw_addr;
-reg [`CC_SET_BIT_WIDTH-1:0] buffer_cpu_addr_set;
-reg [`CC_TAG_BIT_WIDTH-1:0] buffer_cpu_addr_tag;
+reg [`CC_SET_BIT_WIDTH_D-1:0] buffer_cpu_addr_set;
+reg [`CC_TAG_BIT_WIDTH_D-1:0] buffer_cpu_addr_tag;
 reg [`CC_OFFSET_BIT_WIDTH-1:0] buffer_cpu_addr_offset;
 reg [1:0] buffer_cpu_rw_wsize;
 reg [31:0] buffer_cpu_rw_wdata;
@@ -105,7 +105,7 @@ reg [1:0] buffer_cache_way_hit;
 reg [1:0] buffer_cache_way_to_load;
 reg [31:0] buffer_cache_replace_addr;
 reg [127:0] buffer_cache_replace_line;
-// reg [`CC_LINE_WIDTH-1:0] buffer_axi_load_line;
+// reg [`CC_LINE_WIDTH_D-1:0] buffer_axi_load_line;
 reg [31:0] buffer_shift_load_line [`CC_LINE_SIZE-2:0];
 reg [1:0] load_cnt;
 //unassigned!!!
@@ -534,8 +534,8 @@ end
 // end
 
 always @(*) begin
-    cpu_addr_set <= cpu_rw_addr[`CC_ADDR_SET];
-    cpu_addr_tag <= cpu_rw_addr[`CC_ADDR_TAG];
+    cpu_addr_set <= cpu_rw_addr[`CC_ADDR_SET_D];
+    cpu_addr_tag <= cpu_rw_addr[`CC_ADDR_TAG_D];
     cpu_addr_offset <= cpu_rw_addr[`CC_ADDR_OFFSET];
 end
 
@@ -546,22 +546,22 @@ always @(*) begin
         cache_hit_way <= 2'd0;
     end
     else begin
-        if(cpu_addr_tag == cache_ram[cpu_addr_set][0][`CC_LINE_TAG] 
+        if(cpu_addr_tag == cache_ram[cpu_addr_set][0][`CC_LINE_TAG_D] 
             && cache_ram[cpu_addr_set][0][`CC_LINE_VALID]) begin
             cache_hit <= 1;
             cache_hit_way <= 2'd0;
         end
-        else if(cpu_addr_tag == cache_ram[cpu_addr_set][1][`CC_LINE_TAG] 
+        else if(cpu_addr_tag == cache_ram[cpu_addr_set][1][`CC_LINE_TAG_D] 
             && cache_ram[cpu_addr_set][1][`CC_LINE_VALID]) begin
             cache_hit <= 1;
             cache_hit_way <= 2'd1;
         end
-        else if(cpu_addr_tag == cache_ram[cpu_addr_set][2][`CC_LINE_TAG] 
+        else if(cpu_addr_tag == cache_ram[cpu_addr_set][2][`CC_LINE_TAG_D] 
             && cache_ram[cpu_addr_set][2][`CC_LINE_VALID]) begin
             cache_hit <= 1;
             cache_hit_way <= 2'd2;
         end
-        else if(cpu_addr_tag == cache_ram[cpu_addr_set][3][`CC_LINE_TAG] 
+        else if(cpu_addr_tag == cache_ram[cpu_addr_set][3][`CC_LINE_TAG_D] 
             && cache_ram[cpu_addr_set][3][`CC_LINE_VALID]) begin
             cache_hit <= 1;
             cache_hit_way <= 2'd3;
@@ -625,7 +625,7 @@ assign cache_replace_dirty = cache_ram[cpu_addr_set][cache_way_to_replace][`CC_L
 
 //cache_replace_addr
 always @(*) begin
-    cache_replace_addr <= {cache_ram[cpu_addr_set][cache_way_to_replace][`CC_LINE_TAG], cpu_addr_set, 4'b0};
+    cache_replace_addr <= {cache_ram[cpu_addr_set][cache_way_to_replace][`CC_LINE_TAG_D], cpu_addr_set, 4'b0};
     cache_replace_line <= {cache_ram[cpu_addr_set][cache_way_to_replace][`CC_LINE_DATA3],
                             cache_ram[cpu_addr_set][cache_way_to_replace][`CC_LINE_DATA2],
                             cache_ram[cpu_addr_set][cache_way_to_replace][`CC_LINE_DATA1],
@@ -636,9 +636,9 @@ integer i;
 integer j;
 always @(posedge clk) begin
     if(!rst_n) begin
-        for(i=0; i<`CC_SET_SIZE; i=i+1) begin
+        for(i=0; i<`CC_SET_SIZE_D; i=i+1) begin
             for(j=0; j<`CC_WAY_SIZE; j=j+1) begin
-                cache_ram[i][j] <= `CC_LINE_WIDTH'b0;
+                cache_ram[i][j] <= `CC_LINE_WIDTH_D'b0;
             end
         end
     end
