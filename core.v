@@ -166,7 +166,7 @@ reg ex_csr_we;
 reg soft_int_gened;
 
 wire [31:0] mm2_rdata;
-wire [31:0] mm2_rdata_for_fwd;
+reg [31:0] mm2_rdata_for_fwd;
 wire mm2_hit;
 wire mm2_dcache_miss;
 wire mm2_csr_we;
@@ -631,9 +631,25 @@ assign data_cache_waddr = ex_mm1.mm_addr;
 assign data_cache_wdata = ex_mm1.mm_wdata;
 assign data_cache_access_sz = ex_mm1.mm_access_sz;
 assign mm2_rdata = data_cache_rdata >> {mm1_mm2.mm_addr[1:0], 3'b000};
-assign mm2_rdata_for_fwd = (mm1_mm2.mm_access_sz == `ACCESS_SZ_BYTE) ? {24'b0, mm2_rdata[7:0]} :
-                            (mm1_mm2.mm_access_sz == `ACCESS_SZ_HALF) ? {16'b0, mm2_rdata[15:0]} :
-                            mm2_rdata;
+// assign mm2_rdata_for_fwd = (mm1_mm2.mm_access_sz == `ACCESS_SZ_BYTE) ? {24'b0, mm2_rdata[7:0]} :
+//                             (mm1_mm2.mm_access_sz == `ACCESS_SZ_HALF) ? {16'b0, mm2_rdata[15:0]} :
+//                             mm2_rdata;
+always @(*) begin
+    if(mm1_mm2.op == `OP_LDU) begin
+        case (mm1_mm2.mm_access_sz)
+            `ACCESS_SZ_BYTE: mm2_rdata_for_fwd = {24'b0, mm2_rdata[7:0]};
+            `ACCESS_SZ_HALF: mm2_rdata_for_fwd = {16'b0, mm2_rdata[15:0]};
+            default: mm2_rdata_for_fwd = mm2_rdata;
+        endcase
+    end
+    else begin
+        case (mm1_mm2.mm_access_sz)
+            `ACCESS_SZ_BYTE: mm2_rdata_for_fwd = {{24{mm2_rdata[7]}}, mm2_rdata[7:0]};
+            `ACCESS_SZ_HALF: mm2_rdata_for_fwd = {{16{mm2_rdata[15]}}, mm2_rdata[15:0]};
+            default: mm2_rdata_for_fwd = mm2_rdata;
+        endcase
+    end
+end
 assign mm2_hit = data_cache_hit;
 
 assign data_cache_flush = mm1_mm2_flush;
