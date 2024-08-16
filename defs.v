@@ -6,6 +6,7 @@
 `define OP_TYPE_U12I 4'd5
 `define OP_TYPE_RDCNT 4'd6
 `define OP_TYPE_ERTN 4'd8
+`define OP_TYPE_RRI 4'd9
 
 `define OP_TYPE_INVALID 4'd0
 
@@ -70,6 +71,8 @@
 `define OP_RDCNTVH 8'd51
 //ertn
 `define OP_ERTN 8'd52
+//rri
+`define OP_RRIWINZ 8'd53
 
 `define OP_INVALID 8'd0
 

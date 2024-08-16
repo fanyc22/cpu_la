@@ -23,6 +23,8 @@ module decoder (
             reg_j_ren,
             reg_k_ren,
             reg_d_ren,
+            //rri
+            si11_rri,
 //input
             inst,
             id_flushed);
@@ -51,6 +53,7 @@ output reg [13:0] csr_addr;
 output reg reg_j_ren;
 output reg reg_k_ren;
 output reg reg_d_ren;
+output reg [10:0] si11_rri;
 
 wire [7:0] op_3r;
 wire [7:0] op_2ri12;
@@ -60,6 +63,11 @@ wire [7:0] op_csr;
 wire [7:0] op_u12i;
 wire [7:0] op_rdcnt;
 reg [7:0] op_ertn;
+reg [7:0] op_rri;
+
+always @(*) begin
+    si11_rri <= inst[25:15];
+end
 
 always@(*) begin
     reg_j <= inst[9:5];
@@ -133,7 +141,17 @@ always @(*) begin
 end
 
 always @(*) begin
-    if(op_2ri12 != `OP_INVALID) begin
+    if(inst[31:26] == 6'b110000)
+        op_rri = `OP_RRIWINZ;
+    else
+        op_rri = `OP_INVALID;
+end
+
+always @(*) begin
+    if(op_rri != `OP_INVALID) begin
+        op_type = `OP_TYPE_RRI;
+    end
+    else if(op_2ri12 != `OP_INVALID) begin
         op_type = `OP_TYPE_2RI12;
     end
     else if(op_3r != `OP_INVALID) begin
@@ -164,6 +182,7 @@ end
 
 always @(*) begin
     case (op_type)
+        `OP_TYPE_RRI: op = op_rri;
         `OP_TYPE_3R: op = op_3r;
         `OP_TYPE_2RI12: op = op_2ri12;
         `OP_TYPE_BJ: op = op_bj;
@@ -210,9 +229,10 @@ always @(*) begin
 end
 
 always @(*) begin
-    reg_k_ren = op_type == `OP_TYPE_3R &&
+    reg_k_ren = (op_type == `OP_TYPE_3R &&
                 op != `OP_BREAK &&
-                op != `OP_SYSCALL;
+                op != `OP_SYSCALL)||
+                op == `OP_RRIWINZ;
 end
 
 always @(*) begin

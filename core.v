@@ -135,7 +135,9 @@ wire id_reg_d_ren;
 wire [31:0] id_rj_from_fwd;
 wire [31:0] id_rk_from_fwd;
 wire [31:0] id_rd_from_fwd;
+wire [10:0] id_si11_rri;
 
+wire [31:0] ex_rri_out;
 wire [31:0] ex_alu_in2;
 wire [31:0] ex_alu_out;
 wire ex_alu_zero;
@@ -393,6 +395,7 @@ decoder U_decoder(
             .reg_j_ren(id_reg_j_ren),
             .reg_k_ren(id_reg_k_ren),
             .reg_d_ren(id_reg_d_ren),
+            .si11_rri(id_si11_rri),
             .id_flushed(if2_id.flushed));
 
 fwd U_fwd_j(
@@ -458,6 +461,7 @@ reg_id_ex id_ex(
                 .id_reg_j_ren(id_reg_j_ren),
                 .id_reg_k_ren(id_reg_k_ren),
                 .id_reg_d_ren(id_reg_d_ren),
+                .id_si11_rri(id_si11_rri),
                 .id_answ_bht(if2_id.id_answ_bht),
                 .id_answ_ghr(if2_id.id_answ_ghr));
 
@@ -470,6 +474,12 @@ alu_in2_mux U_alu_in2_mux(
                 .imm_sz(id_ex.imm_sz),
                 .shift_imm(id_ex.shift_imm),
                 .flag_unsigned(id_ex.flag_unsigned));
+
+rri U_rri(
+        .rri_out(ex_rri_out),
+        .si11_rri(id_ex.si11_rri),
+        .rj(id_ex.rj_from_fwd),
+        .rk(id_ex.rk_from_fwd));
 
 alu U_alu(
         .alu_in1(id_ex.rj_from_fwd),
@@ -513,6 +523,7 @@ pc_branch U_pc_branch(
 ex_ctrl U_ex_ctrl(
             .op(id_ex.op),
             .op_type(id_ex.op_type),
+            .rri_out(ex_rri_out),
             .alu_out(ex_alu_out),
             .mul_out(ex_mul_out),
             .mul_out_valid(ex_mul_out_valid),

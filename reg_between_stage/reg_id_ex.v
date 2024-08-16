@@ -35,6 +35,7 @@ module reg_id_ex (
         id_reg_j_ren,
         id_reg_k_ren,
         id_reg_d_ren,
+        id_si11_rri,
         id_answ_bht,
         id_answ_ghr);
 
@@ -70,6 +71,7 @@ input wire id_branch_bp;
 input wire id_reg_j_ren;
 input wire id_reg_k_ren;
 input wire id_reg_d_ren;
+input wire [10:0] id_si11_rri;
 
 //************************
 input wire id_answ_bht;
@@ -105,6 +107,7 @@ reg branch_bp;
 reg reg_j_ren;
 reg reg_k_ren;
 reg reg_d_ren;
+reg [10:0] si11_rri;
 
 always @(posedge clk ) begin
     if(!rst_n) begin
@@ -135,6 +138,7 @@ always @(posedge clk ) begin
         reg_j_ren <= 1'b0;
         reg_k_ren <= 1'b0;
         reg_d_ren <= 1'b0;
+        si11_rri <= 11'b0;
     end
     else if(wen) begin
         adef <= flush ? 0 : id_adef;
@@ -164,6 +168,7 @@ always @(posedge clk ) begin
         reg_j_ren <= flush ? 1'b0 : id_reg_j_ren;
         reg_k_ren <= flush ? 1'b0 : id_reg_k_ren;
         reg_d_ren <= flush ? 1'b0 : id_reg_d_ren;
+        si11_rri <= flush ? 11'b0 : id_si11_rri;
     end
 end
 

@@ -20,6 +20,7 @@ module ex_ctrl (
         // rst_n,
         op,
         op_type,
+        rri_out,
         alu_out,
         mul_out,
         mul_out_valid,
@@ -32,6 +33,7 @@ module ex_ctrl (
 
 input wire [7:0] op;
 input wire [3:0] op_type;
+input wire [31:0] rri_out;
 input wire [31:0] alu_out;
 input wire [31:0] mul_out;
 input wire mul_out_valid;
@@ -89,6 +91,7 @@ always @(*) begin
         `OP_MOD:  exe_out = div_out;
         `OP_DIVU:  exe_out = div_out;
         `OP_MODU:  exe_out = div_out;
+        `OP_RRIWINZ:  exe_out = rri_out;
         default: exe_out = alu_out;
     endcase
     // if(op == `OP_LU12I) begin
@@ -132,7 +135,8 @@ always @(*) begin
             (op_type == `OP_TYPE_ATOMIC && (op == `OP_LL)) ||
             (op_type == `OP_TYPE_CSR) ||
             (op_type == `OP_TYPE_U12I)||
-            (op_type == `OP_TYPE_RDCNT);
+            (op_type == `OP_TYPE_RDCNT)||
+            (op_type == `OP_TYPE_RRI);
 end
 
 always @(*) begin
